@@ -1,35 +1,93 @@
 
-# Author: DC
+# Author: Kirill Leontyev (DC)
 
-import sys
+from core.state import State
+from stacks.stack_errs import StackOverflowException as Overflow
+from stacks.stack_errs import StackUnderflowException as Underflow
 
-from analysis import parse, translate
-from dictionary import words
+from processing.analiysis import parse
+from processing.compilation import cmpl
+from processing.compilation import post_process
+from processing.execution import exec
+
+from coders.dict_coder import Dict_coder
+from coders.app.standart_coder import std_coder
+
+from sys import argv as args
+from sys import exit
 
 
 
-stack = []
-defs = {}
+def print_help():
+    print('help')
+
+
+
+ns_d = 16
+rs_d = 8    # However, ret_stack is not in use until counter-cycles are supported
+debug = 0
+
+# Now there is only the Ru-En custom built-in coder
+# You, the person reading this, may add your own: coders/app folder
+coder = std_coder
+
+
+
+### start: ###
+lim = len(args)
+if lim == 2:
+    if args[1] in ['-h', '--help']:
+        print_help()
+        exit(0)
+    elif args[1] in ['-d', '--debug']:
+        debug = 1
+    else:
+        print('Program arguments\' syntax error')
+        exit(0)
+else:
+    i = 1   # Ignoring this program name...
+    while i < lim:
+        try:
+            if args[i] in ['-n', '--num_st_depth']:
+                ns_d = int(args[i + 1])
+                i += 2
+            elif args[i] in ['-r', '--ret_st_depth']:
+                rs_d = int(args[i + 1])
+                i += 2
+            elif args[i] in ['-d', '--debug']:
+                debug = 1
+        except (IndexError, ValueError):
+            print('Program arguments\' syntax error')
+            exit(0)
+
+
+
+state = State(ns_d, rs_d, coder, debug)
 
 while True:
-    code, d = translate( parse(input("> ").split()) )
-    defs.update(d)
-    for symb in code:
-        if symb.isdigit():
-            stack.append( int(symb) )
-        elif symb == 'exit':
-            sys.exit()
-        elif symb == 'words':
-            print( words.keys(), defs.keys(), sep='\n' )
-        elif symb in words.keys():
-            words[ symb ]( stack )
-        elif symb in defs.keys():
-            for i in defs[ symb ]:
-                if i.isdigit():
-                    stack.append( int(i) )
-                else:
-                    words[i]( stack )
+    inp = input("\n> ").split()
+    check = len(inp)
+    if check > 0:
+        if inp[0] in ['выход', 'выйти']:
+            break
+        elif inp[0] == 'сброс_стеков':
+            state.reset_stacks()
+        elif inp[0] == 'сброс_системы':
+            state.reset()
+        elif inp[0] == 'состояние':
+            print('\n' + str(state))
         else:
-            print( 'Err: unknown symbol' + str(symb) )
-            stack = []
-            defs = {}
+            try:
+                print()
+                ops = post_process( cmpl(parse(inp)) )
+                exec(ops, state)
+            except KeyError as kerr:
+                print('Неизвестное слово: ' + str(kerr))
+            except ValueError:
+                print('Синтаксическая ошибка')
+            except Overflow as orr:
+                print('Переполнение стека: ' + str(orr))
+                state.reset()
+            except Underflow as urr:
+                print('Разрушение стека: ' + str(urr))
+                state.reset_stacks()
