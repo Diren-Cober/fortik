@@ -66,8 +66,7 @@ class State:
     @i.setter
     def i(self, num):
         if num < 0:
-            print('Системная ошибка: отрицательный индекс инструкций')
-            raise ValueError
+            raise TypeError('Системная ошибка: смещение за нулевую инструкцию')
         elif self.__i_free:
             self.__i = num
             self.__i_free = False

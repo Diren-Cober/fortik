@@ -90,13 +90,16 @@ while True:
                 print()
                 ops = post_process( cmpl(parse(inp)) )
                 exec(ops, state)
+            except TypeError as terr:
+                print(terr)
+                state.reset_stacks()
             except KeyError as kerr:
                 print('Неизвестное слово: ' + str(kerr))
             except ValueError:
                 print('Синтаксическая ошибка')
             except Overflow as orr:
                 print('Переполнение стека: ' + str(orr))
-                state.reset()
+                state.reset_stacks()
             except Underflow as urr:
                 print('Разрушение стека: ' + str(urr))
                 state.reset_stacks()
