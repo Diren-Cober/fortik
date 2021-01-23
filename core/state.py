@@ -14,8 +14,8 @@ class State:
 
     @staticmethod
     def __cond_init_stack(val, stack_id):
-        if val > sys.maxsize:
-            raise ValueError('Недопустимая величина для размера стека ' + stack_id + ': ' + val)
+        if val < 0 or val > sys.maxsize:
+            raise ValueError('Недопустимая величина для размера стека \'' + stack_id + '\': ' + str(val))
         else:
             return Stack(val, stack_id)
 

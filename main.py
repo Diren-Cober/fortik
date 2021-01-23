@@ -19,7 +19,11 @@ from sys import exit
 
 
 def print_help():
-    print('help')
+    print('\n\tfortik - tiny Forth-like language\n')
+    print('-h | --help\t\t\tto see this')
+    print('-d | --debug\t\t\tto see compiled imput and step-by-step execution (turned off by default)')
+    print('-n | --num_st_depth   <int>\tto set custom depth for the num stack (the default is 16)')
+    print('-r | --ret_st_depth   <int>\tto set custom depth for the ret stack (the default is 8)')
 
 
 
@@ -56,13 +60,18 @@ else:
                 i += 2
             elif args[i] in ['-d', '--debug']:
                 debug = 1
+                i += 1
         except (IndexError, ValueError):
             print('Program arguments\' syntax error')
             exit(0)
 
 
 
-state = State(ns_d, rs_d, coder, debug)
+try:
+    state = State(ns_d, rs_d, coder, debug)
+except ValueError as verr:
+    print('\n' + str(verr))
+    exit(0)
 
 while True:
     inp = input("\n> ").split()
