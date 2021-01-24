@@ -38,7 +38,7 @@ class Stack:
     
     def dup(self):
         if self.__drive.__len__():
-            if self.__drive.__len__() < self.limit():
+            if self.__drive.__len__() < self.limit:
                 tmp = self.__drive.pop()
                 self.__drive.append(tmp)
                 self.__drive.append(tmp)
