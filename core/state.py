@@ -22,6 +22,7 @@ class State:
     def __init__(self, max_num_stack_depth, max_nested_calls, coder, debug):
         self.__debug = debug
         self.__i = 0
+        if debug:   self.__opc = 0  # ops counter
         self.__i_free = True
 
         self.__num_stack = State.__cond_init_stack( max_num_stack_depth, 'Стек арифметики' )
@@ -74,24 +75,39 @@ class State:
     def i_unlck(self):
         self.__i_free = True
     
+    @property
+    def opc(self):
+        if self.__debug:
+            tmp = self.__opc
+            self.__opc += 1
+            return tmp
+
     def encode(self, symb):
         return self.__coder.encode(symb)
     
     def decode(self, code):
         return self.__coder.decode(code)
     
-    def reset(self):
+    def reset_counters(self):
+        self.__i = 0
+        self.__i_free = True
+        if self.__debug:    self.__opc = 0
+    
+    def reset_stacks(self):
+        self.__num_stack.clear()
+        self.__ret_stack.clear()
+        self.__prc_stack.clear()
+    
+    def reset_whole(self):
         self.__num_stack.clear()
         self.__ret_stack.clear()
         self.__prc_stack.clear()
         self.__words.clear()
         self.__words.update(system_dictionary)
         self.__text_buff.clear()
-    
-    def reset_stacks(self):
-        self.__num_stack.clear()
-        self.__ret_stack.clear()
-        self.__prc_stack.clear()
+        self.__i = 0
+        self.__i_free = True
+        self.__opc = 0
     
     def __str__(self):
         res = "\tТекущее состояние системы"

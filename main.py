@@ -7,7 +7,6 @@ from stacks.stack_errs import StackUnderflowException as Underflow
 
 from processing.analiysis import parse
 from processing.compilation import cmpl
-from processing.compilation import post_process
 from processing.execution import exec
 
 from coders.dict_coder import Dict_coder
@@ -82,13 +81,15 @@ while True:
         elif inp[0] == 'сброс_стеков':
             state.reset_stacks()
         elif inp[0] == 'сброс_системы':
-            state.reset()
+            state.reset_whole()
         elif inp[0] == 'состояние':
             print('\n' + str(state))
         else:
             try:
+                state.reset_counters()
                 print()
-                ops = post_process( cmpl(parse(inp)) )
+                ### ready: ###
+                ops = cmpl(parse(inp))
                 exec(ops, state)
             except TypeError as terr:
                 print(terr)

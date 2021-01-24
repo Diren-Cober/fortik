@@ -22,16 +22,18 @@ def r_binop_arithm(func):
         st.rs.push(func(st.rs.pop(), top))
     return word
 
-def cond(st):
-    condition = st.ns.pop()
+def fork(st):
+    cond = st.ns.pop()
     case_f = st.ps.pop()
     case_t = st.ps.pop()
-    action = case_t if condition else case_f
-    # If not word
-    if type(action) == type( ('move', 0) ):
-        st.i += action[1]
+    act = case_t if cond else case_f
+    if st.dg:   print("\top {0}:\taddr={1}:\t\t{2}".format(st.opc, st.i, act))
+    # If it is 'move' op
+    if type(act) == type( ('move', 0) ):
+        st.i += act[1]
+    # If it is inside of a word
     else:
-        action(st)
+        act(st)
 
 def emit(st):
     print(st.decode(st.ns.pop()))
@@ -91,6 +93,6 @@ system_dictionary = {
     'новая_строка': lambda state: print('\n'),                          # cr
 
     ############### Base controls
-    'если':         lambda state: cond(state),
+    'если':         lambda state: fork(state),
     'пока':         None
 }

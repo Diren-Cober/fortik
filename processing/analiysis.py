@@ -42,15 +42,16 @@ def parse(tokens):
     while i < lim:
         token = tokens[i]
         try:
-            parsed.append( ('num', int(token)) )
+            parsed.append( ('push', int(token)) )
             i += 1
         except ValueError:
             if token == ':':
-                i += 1
                 try:
+                    name = tokens[i + 1]
+                    i += 2
                     dfntn, i = extract(tokens, i, ';')
                     ###___________________a_word___its_def___###
-                    parsed.append( ('def', name, parse(dfntn)) )
+                    parsed.append( ('word', name, parse(dfntn)) )
                 except ValueError:
                     print('Определение слова не может содержать вложенных определений и должно завершаться \';\'')
                     raise ValueError
@@ -64,7 +65,7 @@ def parse(tokens):
                 try:
                     case_t, case_f = analize_cond(body)
                     ###_____________________if_true{some code || next op}____if_false{some code || next op}_###
-                    parsed.append( ('cond', parse(case_t) if case_t else [], parse(case_f) if case_f else []) )
+                    parsed.append( ('fork', parse(case_t) if case_t else [], parse(case_f) if case_f else []) )
                 except ValueError:
                     print('При полной записи истинная ветвь условия завершается словом \'то\', а ложная - \'иначе\'')
                     raise ValueError

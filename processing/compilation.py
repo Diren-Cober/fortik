@@ -5,68 +5,82 @@ from collections import deque
 
 
 
-def post_process(compiled):
-    i = 0
-    lim = len(compiled)
-    while i < lim:
+def compose(acts):
+    def word(state):
+        for act in acts:
+            act(state)
+    return word
 
-        if compiled[i][0] == 'cmpl':
-            compiled.pop(i)
-            lim -= 1
-            continue
+def push(num):
+    def word(st):
+        st.ns.push(num)
+    return word
 
-        # We need '-1' correction because of state.e auto-incrementation
-        #elif compiled[i][0] == 'cond':
-            #compiled[i] = ('cond', ('move', compiled[i][1][1] - 1), ('move', compiled[i][2][1] - 1))
+def push_proc(act):
+    def word(st):
+        st.ps.push(act)
+    return word
+    
+def call(name):
+    def word(st):
+        st.ws[name](st)
+    return word
+
+def collapse(acts):
+    collapsed = deque([])
+    for act in acts:
+
+        if act[0] == 'push':
+            collapsed.append( push(act[1]) )
         
-        i += 1
-    return compiled
+        elif act[0] == 'call':
+            collapsed.append( call(act[1]) )
+
+        elif act[0] == 'fork':
+            collapsed.append(push_proc( compose(collapse(act[1])) ))    # case_t -> word -> st.prc_stack
+            collapsed.append(push_proc( compose(collapse(act[2])) ))    # case_f -> word -> st.prc_stack
+            collapsed.append( call('если') )
+
+    return list(collapsed)
 
 
 
+# Compiles parsed input into a list of opcodes (<type>, <arg1>[, <arg2>])
+# <type> = {'push'||'fork'||'move'||'call'||'word'}
+# Note1: <type>=='fork' - two alternatives are pushed into procedure stack
+# Note2: <type>=='move' - it is a kind of 'goto' =)
+# Note3: <type>=='word' - <arg1>=new_word's_name, <arg2>=its_definition 
 def cmpl(parsed):
-    i = 0
-    lim = len(parsed)
     compiled = deque([])
-    while i < lim:
-        act = parsed[i]
-        if act[0] == 'def':
-            compiled.append( ('cmpl', 'def-beg') )
-            compiled.append( ('def', act[1]) )
-            compiled.extend( cmpl(act[2]) )
-            compiled.append( ('def', None) )
-            compiled.append( ('cmpl', 'def-end') )
+    for act in parsed:
 
-        elif act[0] == 'cond':
+        if act[0] == 'word':
+            compiled.append( ('word', act[1], collapse(act[2])) )
+
+        elif act[0] == 'fork':
             case_t = cmpl(act[1])
             case_f = cmpl(act[2])
             # Expanding a condition...
-            m_t = 1 if case_t else len(case_f) + 1
+            m_t = 1 if case_t else len(case_f) + 1  # There is not less than one case
             m_f = len(case_t) + 2 if case_t else 1
-            if not case_f:  m_f -= 1
-            compiled.append( ('cmpl', 'if-beg') )
-            compiled.append( ('cond', ('move', m_t), ('move', m_f)) )
+            if not case_f:  m_f -= 1    # -= ('move', X) between case_t and case_f
+            compiled.append( ('fork', ('move', m_t), ('move', m_f)) )
             compiled.append( ('call', 'если') )
-            compiled.extend(case_t)
-            if case_t and case_f:
-                compiled.append( ('move', len(case_f) + 1) )
-            compiled.extend(case_f)
-            compiled.append( ('cmpl', 'if-end') )
+            if case_t:              compiled.extend(case_t)
+            if case_t and case_f:   compiled.append( ('move', len(case_f) + 1) )
+            if case_f:              compiled.extend(case_f)
         
         elif act[0] == 'cond-loop':
             body = cmpl(act[2])
             delta = len(body)
             # Expanding a pre-conditional cycle...
-            compiled.append( ('cmpl', 'cyc-beg') )
             compiled.append(act[1])     # The condition
-            compiled.append( ('cond', ('move', 1), ('move', delta + 2)) )
+            compiled.append( ('fork', ('move', 1), ('move', delta + 2)) )
             compiled.append( ('call', 'если') )
             compiled.extend(body)
             compiled.append( ('move', -(delta + 3)) )
-            compiled.append( ('cmpl', 'cyc-end') )
 
         else:
             compiled.append(act)
 
-        i += 1
     return list(compiled)
