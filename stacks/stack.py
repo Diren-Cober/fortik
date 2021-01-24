@@ -55,7 +55,7 @@ class Stack:
     
     def rot(self):
         if self.__drive.__len__() > 1:
-            self.__drive = self.__drive[1:] + self.__drive[0]
+            self.__drive = self.__drive[1:] + self.__drive[0:1]
     
     def clear(self):
         self.__drive = []

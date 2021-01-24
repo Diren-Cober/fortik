@@ -26,7 +26,18 @@ def call(name):
         st.ws[name](st)
     return word
 
+def cycle(cond, body):
+    def word(st):
+        NOP = lambda state: None
+        while True:
+            cond(st)
+            if not st.ns.pop():
+                break
+            body(st)
+    return word
+
 def collapse(acts):
+
     collapsed = deque([])
     for act in acts:
 
@@ -37,9 +48,12 @@ def collapse(acts):
             collapsed.append( call(act[1]) )
 
         elif act[0] == 'fork':
-            collapsed.append(push_proc( compose(collapse(act[1])) ))    # case_t -> word -> st.prc_stack
-            collapsed.append(push_proc( compose(collapse(act[2])) ))    # case_f -> word -> st.prc_stack
+            collapsed.append( push_proc( compose(collapse(act[1])) ))    # case_t -> word -> st.prc_stack
+            collapsed.append( push_proc( compose(collapse(act[2])) ))    # case_f -> word -> st.prc_stack
             collapsed.append( call('если') )
+        
+        elif act[0] == 'cond-loop':
+            collapsed.append( cycle(compose(collapse(act[1])), compose(collapse(act[2]))) )
 
     return list(collapsed)
 

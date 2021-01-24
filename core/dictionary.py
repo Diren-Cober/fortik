@@ -27,16 +27,13 @@ def fork(st):
     case_f = st.ps.pop()
     case_t = st.ps.pop()
     act = case_t if cond else case_f
-    if st.dg:   print("\top {0}:\taddr={1}:\t\t{2}".format(st.opc, st.i, act))
+    if st.dg:   print("fork\top {0}:\taddr={1}: \t\t{2}".format(st.opc, st.i, act))
     # If it is 'move' op
     if type(act) == type( ('move', 0) ):
         st.i += act[1]
     # If it is inside of a word
     else:
         act(st)
-
-def emit(st):
-    print(st.decode(st.ns.pop()))
 
 
 
@@ -89,7 +86,7 @@ system_dictionary = {
     ############### Base I/O
     '.':            lambda state: print(state.ns.pop()),
     '."':           None,
-    'символ':       lambda state: print(state.encode(state.ns.pop())),  # emit
+    'символ':       lambda state: print(state.decode(state.ns.pop())),  # emit
     'новая_строка': lambda state: print('\n'),                          # cr
 
     ############### Base controls

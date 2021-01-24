@@ -6,7 +6,7 @@ from processing.compilation import compose
 
 
 # Base: the idea of a Turing Machine
-def exec(ops, st):
+def execute(ops, st):
     st.i = 0
     lim = len(ops)
     if st.dg:   print("\n\tcompiled:\n\t{}".format(str(ops)), end='\n\n')
@@ -14,7 +14,7 @@ def exec(ops, st):
 
         op = ops[st.i]
         st.i_unlck()
-        if st.dg:   print("\top {0}:\taddr={1}:\t\t{2}".format(st.opc, st.i, op))
+        if st.dg:   print("\top {0}:\taddr={1}: \t\t{2}".format(st.opc, st.i, op))
 
         if op[0] == 'push':
             st.ns.push(op[1])

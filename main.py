@@ -7,7 +7,7 @@ from stacks.stack_errs import StackUnderflowException as Underflow
 
 from processing.analiysis import parse
 from processing.compilation import cmpl
-from processing.execution import exec
+from processing.execution import execute
 
 from coders.dict_coder import Dict_coder
 from coders.app.standart_coder import std_coder
@@ -90,7 +90,7 @@ while True:
                 print()
                 ### ready: ###
                 ops = cmpl(parse(inp))
-                exec(ops, state)
+                execute(ops, state)
             except TypeError as terr:
                 print(terr)
                 state.reset_stacks()
