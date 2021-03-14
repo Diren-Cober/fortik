@@ -12,10 +12,13 @@ def extract(tokens, i, end_mark):
     return seq, j + 1
 
 def analize_cond(body):
+
     i_t = body.index('то') if 'то' in body else None
     i_f = body.index('иначе') if 'иначе' in body else None
     c_t = c_f = None
     j = 0
+    b_len = len(body)
+
     if i_t and i_f:
         if i_t < i_f:
             c_t, j = extract(body, j, 'то')
@@ -29,8 +32,9 @@ def analize_cond(body):
         c_f, j = extract(body, j, 'иначе')
     else:
         c_t = body
-        j = len(body)
-    if j != len(body): raise ValueError
+        j = b_len
+
+    if j != b_len: raise ValueError
     return c_t, c_f
 
 
@@ -52,8 +56,11 @@ def parse(tokens):
                     dfntn, i = extract(tokens, i, ';')
                     ###___________________a_word___its_def___###
                     parsed.append( ('word', name, parse(dfntn)) )
+                except IndexError:
+                    print("За ':' должны следовать имя определение слова")
+                    raise ValueError
                 except ValueError:
-                    print('Определение слова не может содержать вложенных определений и должно завершаться \';\'')
+                    print("Определение слова не может содержать вложенных определений и должно завершаться ';'")
                     raise ValueError
 
             elif token == 'если':

@@ -14,7 +14,7 @@ from stacks.stack_errs import StackUnderflowException as Underflow
 from help.help import help_general
 from help.help import help_syntax
 
-from processing.analiysis import parse
+from processing.analysis import parse
 from processing.compilation import cmpl
 from processing.execution import execute
 
@@ -63,6 +63,18 @@ def parse_args(args):
         i += 1   
     return ns_d, rs_d, debug
 
+def print_dict(st):
+    print('\n\tТекущий словарь:')
+    i = 0
+    words = list(st.ws.keys())
+    lim = len(words)
+    while i < lim:
+        print(words[i], end='\t\t')
+        if not (i % 5) and i:
+            print()
+        i += 1
+    print()
+
 
 
 ### start: ###
@@ -84,19 +96,10 @@ while True:
             state.reset_stacks()
         elif inp[0] in ['сброс_системы', 'сбросить_систему']:
             state.reset_whole()
-        elif inp[0] == 'состояние_системы':
+        elif inp[0] in ['состояние', 'состояние_системы']:
             print('\n' + str(state))
-        elif inp[0] == 'слова':
-            print('\n\tТекущий словарь:')
-            i = 0
-            words = list(state.ws.keys())
-            lim = len(words)
-            while i < lim:
-                print(words[i], end='\t\t')
-                if not (i % 5):
-                    print()
-                i += 1
-            print()
+        elif inp[0] in ['слова', 'словарь']:
+            print_dict(state)
         else:
             try:
                 state.reset_counters()
