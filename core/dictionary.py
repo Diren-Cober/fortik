@@ -4,11 +4,9 @@
 
 
 
-def print_dict(st):
-    print('\tТекущий словарь')
-    for name in st.ws.keys():
-        print(name, end=' ')
-    print()
+# Binary stack arithmetic operations' generators.
+def int_wrap(func):
+    return lambda a, b: int(func(a, b))
 
 def n_binop_arithm(func):
     def word(st):
@@ -21,6 +19,8 @@ def r_binop_arithm(func):
         top = st.rs.pop()
         st.rs.push(func(st.rs.pop(), top))
     return word
+
+
 
 def fork(st):
     cond = st.ns.pop()
@@ -39,40 +39,54 @@ def fork(st):
 
 system_dictionary = {
 
-    ############### To list all words known at the moment
-    'слова':    lambda state: print_dict(state),
-
-    ':':    None,
-    ';':    None,
+    ### These words are used only in -  there is no modes like in classic Forth.
+    ':' :   None,
+    ';' :   None,
 
     ############### Numeric stack arithmetics
-    '+':    n_binop_arithm( lambda a, b: a + b ),
-    '-':    n_binop_arithm( lambda a, b: a - b ),
-    '*':    n_binop_arithm( lambda a, b: a * b ),
-    '/':    n_binop_arithm( lambda a, b: a // b ),
-    '%':    n_binop_arithm( lambda a, b: a % b ),
-    '<':    n_binop_arithm( lambda a, b: int(a < b) ),
-    '>':    n_binop_arithm( lambda a, b: int(a > b) ),
-    '1+':   lambda state: state.ns.push(state.ns.pop() + 1),        # numeric increment
-    '1-':   lambda state: state.ns.push(state.ns.pop() - 1),        # numeric decrement
+    '+' :   n_binop_arithm( int.__add__ ),
+    '-' :   n_binop_arithm( int.__sub__ ),
+    '*' :   n_binop_arithm( int.__mul__ ),
+    '/' :   n_binop_arithm( int.__floordiv__ ),
+    '%' :   n_binop_arithm( int.__mod__ ),
+    '**':   n_binop_arithm( int.__pow__ ),
+    '<<':   n_binop_arithm( int.__lshift__ ),
+    '>>':   n_binop_arithm( int.__rshift__ ),
+    '!' :   lambda state: state.ns.invert_top(),
+    '&' :   n_binop_arithm( int.__and__ ),
+    '|' :   n_binop_arithm( int.__or__ ),
+    '^' :   n_binop_arithm( int.__xor__ ),
+    '1+':   lambda state: state.ns.increment_top(),         # numeric increment
+    '1-':   lambda state: state.ns.decrement_top(),         # numeric decrement
+    '<' :   n_binop_arithm( int_wrap(int.__lt__) ),
+    '<=':   n_binop_arithm( int_wrap(int.__le__) ),
+    '>' :   n_binop_arithm( int_wrap(int.__gt__) ),
+    '>=':   n_binop_arithm( int_wrap(int.__ge__) ),
+    '=' :   n_binop_arithm( int_wrap(int.__eq__) ),
+    '!=':   n_binop_arithm( int_wrap(int.__ne__) ),
     
-    'нуль':     lambda state: state.ns.push(0),                     # false
-    'правда':   lambda state: state.ns.push(1),                     # true
+    'ложь'  :   lambda state: state.ns.push(0),             # false
+    'правда':   lambda state: state.ns.push(1),             # true
+    '&&'    :   n_binop_arithm( int.__mul__ ),              # logic and
+    '||'    :   n_binop_arithm( int.__or__ ),               # logic or
+    '^^'    :   n_binop_arithm( int_wrap(int.__ne__) ),     # logic xor
 
     ############### Numeric stack non-arithmetic ops
-    'двойник':      lambda state: state.ns.dup(),                   # dup
-    'выброс':       lambda state: state.ns.pop(),                   # drop
-    'обмен':        lambda state: state.ns.swap(),                  # swap
-    'поворот':      lambda state: state.ns.rot(),                   # rot
-    'глубина':      lambda state: state.ns.push(state.ns.depth()),  # depth
+    'двойник'   :       lambda state: state.ns.dup(),                   # dup
+    'выброс'    :       lambda state: state.ns.pop(),                   # drop
+    'обмен'     :       lambda state: state.ns.swap(),                  # swap
+    'оборот'    :       lambda state: state.ns.rot(),                   # rot
+    'глубина'   :       lambda state: state.ns.push(state.ns.depth()),  # depth
 
     ############### Return stack arithmetics
-    'в+':   r_binop_arithm( lambda a, b: a + b ),
-    'в-':   r_binop_arithm( lambda a, b: a - b ),
-    'в<':   r_binop_arithm( lambda a, b: int(a < b) ),
-    'в>':   r_binop_arithm( lambda a, b: int(a > b) ),
-    'в1+':  lambda state: state.rs.push(state.rs.pop() + 1),        # ret-stack increment
-    'в1-':  lambda state: state.rs.push(state.rs.pop() - 1),        # ret-stack decrement
+    'в+'    :   r_binop_arithm( int.__add__ ),
+    'в-'    :   r_binop_arithm( int.__sub__ ),
+    'в<'    :   r_binop_arithm( int_wrap(int.__lt__) ),
+    'в>'    :   r_binop_arithm( int_wrap(int.__gt__) ),
+    'в='    :   r_binop_arithm( int_wrap(int.__eq__) ),
+    'в!='   :   r_binop_arithm( int_wrap(int.__ne__) ),
+    'в1+'   :   lambda state: state.rs.increment_top(),         # ret-stack increment
+    'в1-'   :   lambda state: state.rs.decrement_top(),         # ret-stack decrement
 
     ############### Return stack non-arithmetic ops
     'в_поместить':  lambda state: state.rs.push(state.ns.pop()),    # // pushing into ret stack from num stack

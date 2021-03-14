@@ -1,9 +1,18 @@
 
 # Author: Kirill Leontyev (DC)
 
+
+
+from sys import argv as args
+from sys import exit
+
 from core.state import State
+
 from stacks.stack_errs import StackOverflowException as Overflow
 from stacks.stack_errs import StackUnderflowException as Underflow
+
+from help.help import help_general
+from help.help import help_syntax
 
 from processing.analiysis import parse
 from processing.compilation import cmpl
@@ -12,23 +21,7 @@ from processing.execution import execute
 from coders.dict_coder import Dict_coder
 from coders.app.standart_coder import std_coder
 
-from sys import argv as args
-from sys import exit
 
-
-
-def print_help():
-    print('\n\tfortik - tiny Forth-like language\n')
-    print('-h | --help\t\t\tto see this')
-    print('-d | --debug\t\t\tto see compiled imput and step-by-step execution (turned off by default)')
-    print('-n | --num_st_depth   <int>\tto set custom depth for the num stack (the default is 16)')
-    print('-r | --ret_st_depth   <int>\tto set custom depth for the ret stack (the default is 8)')
-
-
-
-ns_d = 16
-rs_d = 8    # However, ret_stack is not in use until counter-cycles are supported
-debug = 0
 
 # Now there is only the Ru-En custom built-in coder
 # You, the person reading this, may add your own: coders/app folder
@@ -36,35 +29,44 @@ coder = std_coder
 
 
 
-### start: ###
-lim = len(args)
-if lim == 2:
-    if args[1] in ['-h', '--help']:
-        print_help()
-        exit(0)
-    elif args[1] in ['-d', '--debug']:
-        debug = 1
-    else:
-        print('Program arguments\' syntax error')
-        exit(0)
-else:
-    i = 1   # Ignoring this program name...
+def parse_args(args):
+    i = 1   # Ignoring this program's name...
+    lim = len(args)
+    msg = "Command line arguments' syntax error: "
+    
+    ns_d = 16
+    rs_d = 8
+    debug = 0
+
     while i < lim:
-        try:
-            if args[i] in ['-n', '--num_st_depth']:
-                ns_d = int(args[i + 1])
-                i += 2
-            elif args[i] in ['-r', '--ret_st_depth']:
-                rs_d = int(args[i + 1])
-                i += 2
-            elif args[i] in ['-d', '--debug']:
-                debug = 1
-                i += 1
-        except (IndexError, ValueError):
-            print('Program arguments\' syntax error')
+        if  args[i] in ['-h', '--help']:
+            help_general()
             exit(0)
+        elif args[i] in ['-d', '--debug']:
+            debug = 1
+        else:
+            try:
+                if args[i] in ['-n', '--num_st_depth']:
+                    i += 1
+                    ns_d = int(args[i])
+                elif args[i] in ['-r', '--ret_st_depth']:
+                    i += 1
+                    rs_d = int(args[i])
+            except ValueError:
+                msg += "'{0}' must be followed by integer value - '{1}' has been given"
+                print(msg.format(args[i - 1], args[i]))
+                exit(0)
+            except IndexError:
+                msg += "the {0} key must be followed by a value - none's been given."
+                print(msg.format(args[i - 1]))
+                exit(0)
+        i += 1   
+    return ns_d, rs_d, debug
 
 
+
+### start: ###
+ns_d, rs_d, debug = parse_args(args)
 
 try:
     state = State(ns_d, rs_d, coder, debug)
@@ -74,23 +76,33 @@ except ValueError as verr:
 
 while True:
     inp = input("\n> ").split()
-    check = len(inp)
-    if check > 0:
+    #check = len(inp)
+    if len(inp) > 0:
         if inp[0] in ['выход', 'выйти']:
             break
-        elif inp[0] == 'сброс_стеков':
+        elif inp[0] in ['сброс_стеков', 'сбросить_стеки']:
             state.reset_stacks()
-        elif inp[0] == 'сброс_системы':
+        elif inp[0] in ['сброс_системы', 'сбросить_систему']:
             state.reset_whole()
-        elif inp[0] == 'состояние':
+        elif inp[0] == 'состояние_системы':
             print('\n' + str(state))
+        elif inp[0] == 'слова':
+            print('\n\tТекущий словарь:')
+            i = 0
+            words = list(state.ws.keys())
+            lim = len(words)
+            while i < lim:
+                print(words[i], end='\t\t')
+                if not (i % 5):
+                    print()
+                i += 1
+            print()
         else:
             try:
                 state.reset_counters()
                 print()
                 ### ready: ###
-                ops = cmpl(parse(inp))
-                execute(ops, state)
+                execute(cmpl(parse(inp)), state)
             except TypeError as terr:
                 print(terr)
                 state.reset_stacks()
@@ -104,3 +116,4 @@ while True:
             except Underflow as urr:
                 print('Разрушение стека: ' + str(urr))
                 state.reset_stacks()
+

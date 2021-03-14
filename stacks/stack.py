@@ -1,6 +1,10 @@
 
 # Author: Kirill Leontyev (DC)
 
+
+
+from collections import deque
+
 from stacks.stack_errs import StackOverflowException as Overflow
 from stacks.stack_errs import StackUnderflowException as Underflow
 
@@ -9,7 +13,7 @@ from stacks.stack_errs import StackUnderflowException as Underflow
 class Stack:
 
     def __init__(self, max_depth, id):
-        self.__drive = []
+        self.__drive = deque([])
         self.__limit = max_depth
         self.__id = id
     
@@ -37,8 +41,9 @@ class Stack:
         return self.__drive.__len__()
     
     def dup(self):
-        if self.__drive.__len__():
-            if self.__drive.__len__() < self.limit:
+        drive_len = self.__drive.__len__()
+        if drive_len:
+            if drive_len < self.__limit:
                 tmp = self.__drive.pop()
                 self.__drive.append(tmp)
                 self.__drive.append(tmp)
@@ -55,10 +60,19 @@ class Stack:
     
     def rot(self):
         if self.__drive.__len__() > 1:
-            self.__drive = self.__drive[1:] + self.__drive[0:1]
+            self.__drive.append(self.__drive.popleft())
+
+    def invert_top(self):
+        self.__drive[-1] = self.__drive[-1].__neg__()
+
+    def increment_top(self):
+        self.__drive[-1] += 1
+
+    def decrement_top(self):
+        self.__drive.append(self.__drive.pop() - 1)
     
     def clear(self):
-        self.__drive = []
+        self.__drive = deque([])
     
     def __str__(self):
         return str(self.__drive)
