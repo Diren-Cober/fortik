@@ -5,13 +5,13 @@ from collections import deque
 
 
 
-def compose(acts):
+def compose(acts: list):
     def word(state):
         for act in acts:
             act(state)
     return word
 
-def push(num):
+def push(num: int):
     def word(st):
         st.ns.push(num)
     return word
@@ -21,7 +21,7 @@ def push_proc(act):
         st.ps.push(act)
     return word
     
-def call(name):
+def call(name: str):
     def word(st):
         st.ws[name](st)
     return word
@@ -36,7 +36,7 @@ def cycle(cond, body):
             body(st)
     return word
 
-def collapse(acts):
+def collapse(acts: list):
 
     collapsed = deque([])
     for act in acts:
@@ -64,7 +64,7 @@ def collapse(acts):
 # Note1: <type>=='fork' - two alternatives are pushed into procedure stack
 # Note2: <type>=='move' - it is a kind of 'goto' =)
 # Note3: <type>=='word' - <arg1>=new_word's_name, <arg2>=its_definition 
-def cmpl(parsed):
+def cmpl(parsed: list):
     compiled = deque([])
     for act in parsed:
 

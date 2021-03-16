@@ -29,7 +29,7 @@ coder = std_coder
 
 
 
-def parse_args(args):
+def parse_args(args: list):
     i = 1   # Ignoring this program's name...
     lim = len(args)
     msg = "Command line arguments' syntax error: "
@@ -63,7 +63,7 @@ def parse_args(args):
         i += 1   
     return ns_d, rs_d, debug
 
-def print_dict(st):
+def print_dict(st: State):
     print('\n\tТекущий словарь:')
     i = 0
     words = list(st.ws.keys())

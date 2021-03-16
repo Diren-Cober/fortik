@@ -39,7 +39,7 @@ def fork(st):
 
 system_dictionary = {
 
-    ### These words are used only in -  there is no modes like in classic Forth.
+    ### These words are used only in parsing - there is no modes like in classic Forth.
     ':' :   None,
     ';' :   None,
 
@@ -89,19 +89,19 @@ system_dictionary = {
     'в1-'   :   lambda state: state.rs.decrement_top(),         # ret-stack decrement
 
     ############### Return stack non-arithmetic ops
-    'в_поместить':  lambda state: state.rs.push(state.ns.pop()),    # // pushing into ret stack from num stack
-    'в_вернуть':    lambda state: state.ns.push(state.rs.pop()),    # // popping from ret stack to num stack
-    'в_двойник':    lambda state: state.rs.dup(),                   # rdup
-    'в_выброс':     lambda state: state.rs.pop(),                   # rdrop
-    'в_обмен':      lambda state: state.rs.swap(),                  # rswap
-    'в_поворот':    lambda state: state.rs.rot(),                   # rrot
-    'в_глубина':    lambda state: state.rs.push(state.rs.depth),    # rdepth
+    'в_поместить'   :   lambda state: state.rs.push(state.ns.pop()),    # // pushing into ret stack from num stack
+    'в_вернуть'     :   lambda state: state.ns.push(state.rs.pop()),    # // popping from ret stack to num stack
+    'в_двойник'     :   lambda state: state.rs.dup(),                   # rdup
+    'в_выброс'      :   lambda state: state.rs.pop(),                   # rdrop
+    'в_обмен'       :   lambda state: state.rs.swap(),                  # rswap
+    'в_поворот'     :   lambda state: state.rs.rot(),                   # rrot
+    'в_глубина'     :   lambda state: state.rs.push(state.rs.depth),    # rdepth
 
     ############### Base I/O
-    '.':            lambda state: print(state.ns.pop()),
-    '."':           None,
-    'символ':       lambda state: print(state.decode(state.ns.pop())),  # emit
-    'новая_строка': lambda state: print('\n'),                          # cr
+    '.'             :   lambda state: print(state.ns.pop()),
+    '."'            :   None,
+    'символ'        :   lambda state: print(state.decode(state.ns.pop())),  # emit
+    'новая_строка'  :   lambda state: print('\n'),                          # cr
 
     ############### Base controls
     'если':         lambda state: fork(state),

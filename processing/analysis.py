@@ -6,12 +6,12 @@ from collections import deque
 
 
 
-def extract(tokens, i, end_mark):
+def extract(tokens: list, i: int, end_mark: str):
     j = tokens.index(end_mark)
     seq = tokens[i:j]
     return seq, j + 1
 
-def analize_cond(body):
+def analize_cond(body: list):
 
     i_t = body.index('то') if 'то' in body else None
     i_f = body.index('иначе') if 'иначе' in body else None
@@ -39,7 +39,7 @@ def analize_cond(body):
 
 
 
-def parse(tokens):
+def parse(tokens: list):
     parsed = deque([])
     i = 0
     lim = len(tokens)

@@ -13,13 +13,13 @@ import sys
 class State:
 
     @staticmethod
-    def __cond_init_stack(val, stack_id):
+    def __cond_init_stack(val: int, stack_id: str):
         if val < 0 or val > sys.maxsize:
             raise ValueError('Недопустимая величина для размера стека \'' + stack_id + '\': ' + str(val))
         else:
             return Stack(val, stack_id)
 
-    def __init__(self, max_num_stack_depth, max_nested_calls, coder, debug):
+    def __init__(self, max_num_stack_depth: int, max_nested_calls: int, coder, debug: int):
         self.__debug = debug
         self.__i = 0
         if debug:   self.__opc = 0  # ops counter
@@ -65,7 +65,7 @@ class State:
         return self.__i
     
     @i.setter
-    def i(self, num):
+    def i(self, num: int):
         if num < 0:
             raise TypeError('Системная ошибка: смещение за нулевую инструкцию')
         elif self.__i_free:
@@ -82,10 +82,10 @@ class State:
             self.__opc += 1
             return tmp
 
-    def encode(self, symb):
+    def encode(self, symb: str):
         return self.__coder.encode(symb)
     
-    def decode(self, code):
+    def decode(self, code: int):
         return self.__coder.decode(code)
     
     def reset_counters(self):

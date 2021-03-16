@@ -6,7 +6,7 @@ from processing.compilation import compose
 
 
 # Base: the idea of a Turing Machine
-def execute(ops, st):
+def execute(ops: list, st):
     st.i = 0
     lim = len(ops)
     if st.dg:   print("\n\tcompiled:\n\t{}".format(str(ops)), end='\n\n')
