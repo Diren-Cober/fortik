@@ -28,7 +28,6 @@ def call(name: str):
 
 def cycle(cond, body):
     def word(st):
-        NOP = lambda state: None
         while True:
             cond(st)
             if not st.ns.pop():
