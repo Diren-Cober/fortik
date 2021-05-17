@@ -1,162 +1,109 @@
-
 # Author: Kirill Leontyev (DC)
 
 
 
-from sys import argv as args
-from sys import exit
+# Preparations...
+from os.path import abspath, split
+from inspect import getsourcefile
 
-from core.state import State
-
-from stacks.stack_errs import StackOverflowException as Overflow
-from stacks.stack_errs import StackUnderflowException as Underflow
-
-from help.help import help_general
-from help.help import help_syntax
-
-from typing import Tuple
-from typing import List
-from typing import Dict
-from typing import NoReturn
-
-from processing.analysis import parse
-from processing.compilation import cmpl
-from processing.execution import execute
-
-from coders.dict_coder import Dict_coder
-from coders.app.standart_coder import std_coder
+# 1. We pass in-place defined lambda to os.path.getsourcefile => we get *THIS* file's name.
+# 2. os.abspath provides us with the full name of *THIS* file.
+# 3. os.split(...)[0] extracts catalogue's name.
+location = split(abspath(getsourcefile(lambda: None)))[0]
+del abspath, split, getsourcefile
 
 
 
-# Now there is only the Ru-En custom built-in coder
-# You, the person reading this, may add your own: coders/app folder
-coder = std_coder
+import sys
+from frt_bootstrap.boot_starter import boot
+from frt_bootstrap.boot_cli import boot_interface
+write = sys.stdout.write
+flush = sys.stdout.flush
+retcode, *others = boot(location, boot_interface, sys.stdin.readline, write)
+del sys, boot, boot_interface
 
 
 
-def parse_args(args: List[str]) -> Tuple[int, int, int]:
-    i = 1   # Ignoring this program's name...
-    lim = len(args)
-    msg = "Command line arguments' syntax error: "
+if retcode:
+    from frt_bootstrap.boot_low import reduce_commas
+    write(
+        {
+            1: """
+Ошибка: не удалось проверить целостность системы: отсутствует папка 'frt_bootstrap'.
+Error: system's integrity check has been failed due to loss of the 'frt_bootstrap' directory.
+""",
+            2: """
+Ошибка: не удалось проверить целостность системы: отсутствует файл 'frt_bootstrap/boot_low.py'.
+Error: system's integrity check has been failed due to loss of the 'frt_bootstrap/boot_low.py' file.
+""",
+            3: """
+Ошибка: не удалось проверить целостность системы: файл 'frt_bootstrap/boot_low.py' повреждён.
+Error: system's integrity check has been failed due to corruption of the 'frt_bootstrap/boot_low.py' file.
+""",
+            4: """
+Ошибка: целостность системы нарушена.
+Error: the system is corrupted.
+Недостаёт: {0}.
+Missing: {0}.
+""".format(reduce_commas(others[0])),
+            5: """
+Ошибка: недостаёт следующих файлов локализации: {0}.
+Error: the next localization files are missing: {0}.
+""".format(reduce_commas(others[0])),
+            6: """
+Ошибка: недостаёт следующих кодовых страниц: {0}.
+Error: the next code pages are missing: {0}.
+""".format(reduce_commas(others[0])),
+            7: """
+Ошибка в аргументах командной строки.
+Command line arguments error.
+Ключ '{0}' должен сопровождаться одним из следующих значений: {1}.
+A '{0}' key must be followed by one of these values: {1}.
+""".format(others[0], reduce_commas(others[1])),
+            8: """
+Ошибка: запрашиваемый модуль локализации ('{0}') не найден.
+Error: the requested localization module ('{0}') have not been found.
+""".format(others[0]),
+            9: """
+Ошибка: запрашиваемый модуль локализации ('{0}') повреждён.
+Error: the requested localization module ('{0}') has been corrupted.
+""".format(others[0]),
+            10: others[0],
+            11: '',  # coder not found
+            12: '',  # coder corrupted
 
-    ns_d = 16       # Default num stack depth.
-    rs_d = 8        # Default ret stack depth.
-    debug_mode = 0  # Debug mode: 0 - none, 1 - parsing...
-    # ...2 - compilation, 3 - execution, 4 - all.
+        }.__getitem__(retcode)
+    )
+    flush()
+    exit(retcode)
 
-    def parse_args_valerr(key: str, val: str) -> NoReturn:
-        msg += "'{0}' key must be followed by integer value - '{1}' has been given."
-        print(msg.format(key, val))
-        exit(0)
-    
-    def parse_args_negval(lval: str) -> NoReturn:
-        print("The '{0}' value must not be negative.".format())
-        exit(0)
-
-    while i < lim:
-        try:
-            if args[i] in ['-ns', '--num-stack']:
-                try:
-                    ns_d = int(args[i + 1])
-                    if ns_d < 0:
-                        parse_args_negval('num stack\'s depth')
-                except ValueError:
-                    parse_args_valerr(args[i], args[i + 1])
-                i += 2
-            
-            elif args[i] in ['-rs', '--ret-stack']:
-                try:
-                    rs_d = int(args[i + 1])
-                    if rs_d < 0:
-                        parse_args_negval('ret stack\'s depth')
-                except ValueError:
-                    parse_args_valerr(args[i], args[i + 1])
-                i += 2
-            
-            elif args[i] in ['-d', '--debug']:
-                try:
-                    debug_mode = int(args[i + 1])
-                    if debug_mode < 0:
-                        parse_args_negval('debug mode')
-                    elif debug_mode > 4:
-                        debug_mode = 4
-                except ValueError:
-                    parse_args_valerr(args[i], args[i + 1])
-                i += 2
-            
-            elif args[i] in ['-h', '--help']:
-                #   :dbg, :syntax, :general, :dct...
-                help_general()
-                exit(0)
-            
-            else:
-                msg += "unknown key: '{0}'."
-                print(msg.format(args[i]))
-                exit(0)
-            
-        except IndexError:
-            msg += "the '{0}' key must be followed by a value - none's been given."
-            print(msg.format(args[i - 1]))
-            exit(0)
-        
-    return ns_d, rs_d, debug_mode
-
-
-
-def print_dict(st: State):
-    print('\n\tТекущий словарь:')
-    i = 0
-    words = list(st.ws.keys())
-    lim = len(words)
-    while i < lim:
-        print(words[i], end='\t\t')
-        if not (i % 5) and i:
-            print()
-        i += 1
-    print()
-
-
-
-### start: ###
-ns_d, rs_d, debug = parse_args(args)
-
-try:
-    state = State(ns_d, rs_d, coder, debug)
-except ValueError as verr:
-    print('\n' + str(verr))
+elif retcode is None:
+    write(others[0])
+    flush()
     exit(0)
 
-while True:
-    inp = input("\n> ").split()
-    #check = len(inp)
-    if len(inp) > 0:
-        if inp[0] in ['выход', 'выйти']:
-            break
-        elif inp[0] in ['сброс_стеков', 'сбросить_стеки']:
-            state.reset_stacks()
-        elif inp[0] in ['сброс_системы', 'сбросить_систему']:
-            state.reset_whole()
-        elif inp[0] in ['состояние', 'состояние_системы']:
-            print('\n' + str(state))
-        elif inp[0] in ['слова', 'словарь']:
-            print_dict(state)
-        else:
-            try:
-                state.reset_counters()
-                print()
-                ### ready: ###
-                execute(cmpl(parse(inp)), state)
-            except TypeError as terr:
-                print(terr)
-                state.reset_stacks()
-            except KeyError as kerr:
-                print('Неизвестное слово: ' + str(kerr))
-            except ValueError:
-                print('Синтаксическая ошибка')
-            except Overflow as orr:
-                print('Переполнение стека: ' + str(orr))
-                state.reset_stacks()
-            except Underflow as urr:
-                print('Разрушение стека: ' + str(urr))
-                state.reset_stacks()
+else:
+    vm = others[0]
+    del retcode, others
 
+    # Entering the main loop...
+    from frt_bootstrap.boot_optags import get_optags
+    from frt_bootstrap.boot_parser import get_parser
+    from frt_bootstrap.boot_compiler import get_compiler
+    from frt_bootstrap.boot_executor import get_executor
+
+    t, o = get_optags()
+    parse = get_parser(with_debug=True, get_dbg_msg=vm.localization.dbgs.__getitem__)
+    compile_tagged = get_compiler(
+        t, o, with_debug=True, get_dbg_msg=vm.localization.dbgs.__getitem__,
+        widest_cell=max(map(lambda x: len(x[1]), vm.localization.dbgs.items()))
+    )
+    execute = get_executor(vm.state)
+
+    tokens = input("> ").split()
+    parsed = parse(tokens, 0, len(tokens), t, vm.state.words)
+    print("\t-- Parsed --\n{}\n\t-- ------ --".format(parsed[2]))
+    print("\t     ***")
+    compiled = compile_tagged(parsed[1], t, o)
+    print("\t-- Compiled --\n{}\n\t -- -------- --".format(compiled[1]))
+    execute(compiled[0], o)
