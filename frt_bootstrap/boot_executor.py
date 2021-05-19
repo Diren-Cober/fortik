@@ -6,7 +6,9 @@
 # Compiled = iterable<tuple<object, ...>>
 # Opcodes = frt_bootstrap.boot_optags.get_optags.Opcodes
 # Ref:
-def get_executor(state):
+def get_executor(state, with_debug=False, get_dbg_msg=None, wides_cell=30):
+
+    from frt_core.cf_stack import Stack_underflow
 
     g_len = len
 
@@ -17,6 +19,8 @@ def get_executor(state):
     st_cfl_clock = state.cfl_stack.clock
     st_cfl_compare = state.cfl_stack.compare
     st_cfl_clock_plus = state.cfl_stack.clock_plus
+    st_words__getitem__ = state.words.__getitem__
+    st_words__setitem__ = state.words.__setitem__
 
     # Compiled = iterable<tuple<object, ...>>
     # Opcodes = frt_bootstrap.boot_optags.get_optags.Opcodes
@@ -36,7 +40,11 @@ def get_executor(state):
                 i += 1
 
             elif tag is opcodes.call:
-                others[0](state)
+                callable_word = others[0]
+                if callable_word:
+                    callable_word(state)
+                else:
+                    execute(st_words__getitem__(others[1]), opcodes)
                 i += 1
 
             elif tag is opcodes.move:
@@ -62,21 +70,105 @@ def get_executor(state):
 
             elif tag is opcodes.clock_p:
                 st_cfl_clock_plus(st_ns_pop())
-                i += others[0]
+                while i < lim:
+                    tag, *others = compiled_get(i)
+                    if tag is opcodes.clock:
+                        i += others[0]
+                        break
+                    i += 1
+                else:
+                    raise RuntimeError("Unable to modify counter without any cycle.")
 
             else:
-                #define
-                pass
+                st_words__setitem__(*others)
+                i += 1
 
-        pass
 
+    fill_debug_message = "addr={{:5}}\top={{:{}}}\t{{}}".format(wides_cell).format
+    fill_additional_message = "addr={{:5}}\tinfo:\t{{}}".format(wides_cell).format
 
     # Compiled = iterable<tuple<object, ...>>
-    # State = frt_core.state.State
     # Opcodes = frt_bootstrap.boot_optags.get_optags.Opcodes
     # Ref:
-    def execute_with_debug(compiled, st, opcodes):
-        pass
+    def execute_with_debug(compiled, opcodes):
+
+        i = 0
+        lim = g_len(compiled)
+
+        compiled_get = compiled.__getitem__
+
+        while i < lim:
+            tag, *others = compiled_get(i)
+
+            if tag is opcodes.push:
+                st_ns_push(*others)
+                print(fill_debug_message(i, get_dbg_msg('push'), *others))
+                i += 1
+
+            elif tag is opcodes.call:
+                callable_word, name = others
+                print(fill_debug_message(i, get_dbg_msg('call'), name))
+                print(get_dbg_msg('output'), end='')
+                if callable_word:
+                    callable_word(state)
+                else:
+                    execute(st_words__getitem__(name), opcodes)
+                print('.\n')
+                i += 1
+
+            elif tag is opcodes.move:
+                delta, = others
+                print(fill_debug_message(i, get_dbg_msg('move'), delta))
+                i += delta
+
+            elif tag is opcodes.fork:
+                delta = others[0] if st_ns_pop() else others[1]
+                print(fill_debug_message(i, get_dbg_msg('fork'), delta))
+                i += delta
+
+            elif tag is opcodes.setup_cycle:
+                st_cfl_push(*others)
+                print(fill_debug_message(i, get_dbg_msg('cycle'), others))
+                i += 1
+
+            elif tag is opcodes.check_cycle:
+                print(fill_debug_message(i, get_dbg_msg('cycle?'), *others))
+                if st_cfl_compare():
+                    print(fill_additional_message(i, get_dbg_msg('cycle>')))
+                    i += 1
+                else:
+                    st_cfl_drop()
+                    print(fill_additional_message(i, get_dbg_msg('cycle!')))
+                    i += others[0]
+
+            elif tag is opcodes.clock:
+                st_cfl_clock()
+                delta, = others
+                print(fill_debug_message(i, get_dbg_msg('clck'), delta))
+                i += delta
+
+            elif tag is opcodes.clock_p:
+                delta = st_ns_pop()
+                try:
+                    st_cfl_clock_plus(delta)
+                except Stack_underflow:
+                    raise RuntimeError("Unable to modify counter without any cycle.")
+
+                print(fill_debug_message(i, get_dbg_msg('clck+'), delta))
+                while i < lim:
+                    tag, *others = compiled_get(i)
+                    if tag is opcodes.clock:
+                        i += others[0]
+                        break
+                    i += 1
+                else:
+                    raise RuntimeError("Unable to modify counter without any cycle in local scope.")
+
+            else:
+                name, body = others
+                st_words__setitem__(name, body)
+                print(fill_debug_message(i, get_dbg_msg('wdef'), name))
+                i += 1
 
 
-    return execute
+    return execute_with_debug if with_debug else execute

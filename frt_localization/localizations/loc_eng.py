@@ -123,7 +123,10 @@ dbgs = {
     'move'      : 'jump-relatively',
     'cycle'     : 'setup-cycle',
     'cycle?'    : 'check-counter',
-    'clck'      : 'next-iteration'
+    'clck'      : 'next-iteration',
+    'cycle>'    : 'enter-iteration',
+    'cycle!'    : 'exit-iteration',
+    'output'    : 'Output: '
 }
 
 # Strings used in stringification of internal operations' tags.

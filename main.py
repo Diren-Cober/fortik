@@ -93,17 +93,19 @@ else:
     from frt_bootstrap.boot_executor import get_executor
 
     t, o = get_optags()
-    parse = get_parser(with_debug=True, get_dbg_msg=vm.localization.dbgs.__getitem__)
-    compile_tagged = get_compiler(
-        t, o, with_debug=True, get_dbg_msg=vm.localization.dbgs.__getitem__,
-        widest_cell=max(map(lambda x: len(x[1]), vm.localization.dbgs.items()))
-    )
-    execute = get_executor(vm.state)
+    get_debugs = vm.localization.dbgs.__getitem__
+    wc = max(map(lambda x: len(x[1]), vm.localization.dbgs.items()))
+    parse = get_parser(with_debug=True, get_dbg_msg=get_debugs)
+    compile_tagged = get_compiler(t, o, with_debug=True, get_dbg_msg=get_debugs, widest_cell=wc)
+    execute = get_executor(vm.state, with_debug=True, get_dbg_msg=get_debugs, wides_cell=wc)
 
     tokens = input("> ").split()
     parsed = parse(tokens, 0, len(tokens), t, vm.state.words)
     print("\t-- Parsed --\n{}\n\t-- ------ --".format(parsed[2]))
     print("\t     ***")
     compiled = compile_tagged(parsed[1], t, o)
-    print("\t-- Compiled --\n{}\n\t -- -------- --".format(compiled[1]))
+    print("\t-- Compiled --\n{}\n\t-- -------- --".format(compiled[1]))
+    print("\t     ***")
+    print("\t-- Executed --\n")
     execute(compiled[0], o)
+    print("\t-- -------- --")

@@ -8,7 +8,7 @@
 # Parsed = iterable<tuple<object, ...>>
 # Ref: (bool, optional<(str) -> str>) -> (iterable<str>, int, int, Tags, Words) ->
 # -> union< tuple<bool, union<Parsed, str>>, tuple<bool, union<tuple<Parsed, str>, str> >
-def get_parser(with_debug, get_dbg_msg=None):
+def get_parser(with_debug=False, get_dbg_msg=None):
 
     g_int = int
     g_tuple = tuple
@@ -61,6 +61,7 @@ def get_parser(with_debug, get_dbg_msg=None):
     def parse(tokens, i, end, tags, words):
 
         parsed = []
+        defined = []
         parsed_append = parsed.append
 
         tokens_index = tokens.index
@@ -90,12 +91,14 @@ def get_parser(with_debug, get_dbg_msg=None):
 
                     status = parse(tokens, i + 2, end_of_def, tags, words)
                     if status[0]:
+                        i += 1
                         #____________________________a_word_________its_def____#
-                        parsed_append( (tags.define, tokens[i + 1], status[1]) )
+                        parsed_append( (tags.define, tokens[i], status[1]) )
                     else:
                         # err in word def
                         return False, status[1]
 
+                    defined.append(tokens[i])
                     i = end_of_def + 1
 
                 elif token == 'если':
@@ -193,8 +196,11 @@ def get_parser(with_debug, get_dbg_msg=None):
                     try:
                         parsed_append( (tags_call, words[token]) )
                     except KeyError:
-                        # unknown word
-                        return False, ""
+                        if token in defined:
+                            parsed_append( (tags_call, None, token) )
+                        else:
+                            # unknown word
+                            return False, ""
 
                     i += 1
 
@@ -212,6 +218,7 @@ def get_parser(with_debug, get_dbg_msg=None):
     def parse_with_debug(tokens, i, end, tags, words, nesting=0):
 
         parsed = []
+        defined = []
         debug_info = []
         parsed_append = parsed.append
         debug_info_pop = debug_info.pop
@@ -246,7 +253,7 @@ def get_parser(with_debug, get_dbg_msg=None):
                         # no limiter
                         return False, "no ;"
 
-                    status = parse_with_debug(tokens, i + 2, end_of_def, tags, words, nesting=nesting + 1)
+                    status = parse_with_debug(tokens, i + 2, end_of_def, tags, words, nesting=(nesting + 1))
                     if status[0]:
                         name = tokens[i + 1]
                         #___________________________a_word_its_def____#
@@ -261,6 +268,7 @@ def get_parser(with_debug, get_dbg_msg=None):
                         # err in word def
                         return False, status[1]
 
+                    defined.append(name)
                     i = end_of_def + 1
 
                 elif token == 'если':
@@ -276,9 +284,9 @@ def get_parser(with_debug, get_dbg_msg=None):
                         # additional useless words
                         return False, ""
 
-                    status_t = parse_with_debug(tokens, *case_t, tags, words, nesting=nesting + 1)
+                    status_t = parse_with_debug(tokens, *case_t, tags, words, nesting=(nesting + 1))
                     if status_t[0]:
-                        status_f = parse_with_debug(tokens, *case_f, tags, words, nesting=nesting + 1)
+                        status_f = parse_with_debug(tokens, *case_f, tags, words, nesting=(nesting + 1))
                         if status_t[0]:
                             #__________________________if_true______if_false_____#
                             parsed_append( (tags.fork, status_t[1], status_f[1]) )
@@ -308,7 +316,7 @@ def get_parser(with_debug, get_dbg_msg=None):
                         # no limiter
                         return False, ""
 
-                    status = parse_with_debug(tokens, i + 1, end_of_while, tags, words, nesting=nesting + 1)
+                    status = parse_with_debug(tokens, i + 1, end_of_while, tags, words, nesting=(nesting + 1))
                     if status[0]:
                         #____________________________the_cond_the_body___#
                         parsed_append( (tags.loop_while, act, status[1]) )
@@ -352,7 +360,7 @@ def get_parser(with_debug, get_dbg_msg=None):
                         step_word_index = i
                         step = 1
 
-                    status = parse_with_debug(tokens, step_word_index + 1, end_of_for, tags, words, nesting=nesting + 1)
+                    status = parse_with_debug(tokens, step_word_index + 1, end_of_for, tags, words, nesting=(nesting + 1))
                     if status[0]:
                         parsed_append( (tags.loop_for, *oth_1, *oth_2, step, status[1]) )
                         debug_info_append(
@@ -374,12 +382,12 @@ def get_parser(with_debug, get_dbg_msg=None):
 
                 else:
                     try:
-                        parsed_append( (tags_call, words[token], token) )
-                        debug_info_append( str_format("({}, {})", get_dbg_msg('call'), token) )
+                        parsed_append( (tags_call, None if token in defined else words[token], token) )
                     except KeyError:
                         # unknown word
                         return False, ""
 
+                    debug_info_append(str_format("({}, {})", get_dbg_msg('call'), token))
                     i += 1
 
         return True, g_tuple(parsed), str_join(post_indent, debug_info)

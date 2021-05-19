@@ -9,7 +9,7 @@
 # Compiled = iterable<tuple<object, ...>>
 # Ref: (Tags, Opcodes, bool, optional<(str) -> str>, optional<int>) ->
 # -> union< (Parsed, Tags, Opcodes) -> Compiled, (Parsed, Tags, Opcodes) -> tuple<Compiled, str> >
-def get_compiler(_tags, _opcodes, with_debug, get_dbg_msg=None, widest_cell=30):
+def get_compiler(_tags, _opcodes, with_debug=False, get_dbg_msg=None, widest_cell=30):
 
     from collections import deque
 
@@ -104,14 +104,13 @@ def get_compiler(_tags, _opcodes, with_debug, get_dbg_msg=None, widest_cell=30):
                 compiled_append(act)
 
             else:
-                ### !! ###
-                compiled_append( (tag, act[1], None) )
+                compiled_append( (tag, act[1], compile_tagged(act[2], tags, opcodes)) )
 
         return g_tuple(compiled)
 
 
     g_str = str
-    n_join = "\n".join
+    str_join = g_str.join
     str_format = str.format
 
     def set_cell(template):
@@ -122,7 +121,7 @@ def get_compiler(_tags, _opcodes, with_debug, get_dbg_msg=None, widest_cell=30):
     # Parsed = iterable<tuple<object, ...>>
     # Compiled = iterable<tuple<object, ...>>
     # Ref: (Parsed, Tags, Opcodes) -> tuple<Compiled, str>
-    def compile_tagged_with_debug(parsed, tags, opcodes):
+    def compile_tagged_with_debug(parsed, tags, opcodes, nesting=False):
 
         ot_fork = tags.fork     # ...== opcodes.fork.
 
@@ -151,8 +150,8 @@ def get_compiler(_tags, _opcodes, with_debug, get_dbg_msg=None, widest_cell=30):
                 )
 
             elif tag is ot_fork:
-                case_t, dbg_t = compile_tagged_with_debug(act[1], tags, opcodes)
-                case_f, dbg_f = compile_tagged_with_debug(act[2], tags, opcodes)
+                case_t, dbg_t = compile_tagged_with_debug(act[1], tags, opcodes, nesting)
+                case_f, dbg_f = compile_tagged_with_debug(act[2], tags, opcodes, nesting)
                 case_t_len = g_len(case_t)
                 case_f_len = g_len(case_f)
                 # Computing gotos...
@@ -187,7 +186,7 @@ def get_compiler(_tags, _opcodes, with_debug, get_dbg_msg=None, widest_cell=30):
                     debug_info_append(dbg_f)
 
             elif tag is tags.loop_while:
-                body, dbg_b = compile_tagged_with_debug(act[2], tags, opcodes)
+                body, dbg_b = compile_tagged_with_debug(act[2], tags, opcodes, nesting)
                 delta = g_len(body) + 2
                 condition_call = act[1]
                 # Expanding a conditional cycle...
@@ -213,7 +212,7 @@ def get_compiler(_tags, _opcodes, with_debug, get_dbg_msg=None, widest_cell=30):
                 )
 
             elif tag is tags.loop_for:
-                body, dbg_b = compile_tagged_with_debug(act[4], tags, opcodes)
+                body, dbg_b = compile_tagged_with_debug(act[4], tags, opcodes, nesting)
                 delta_out = g_len(body) + 2
                 delta_next = - (delta_out - 1)
                 start, end, step = act[1], act[2], act[3]
@@ -252,14 +251,14 @@ def get_compiler(_tags, _opcodes, with_debug, get_dbg_msg=None, widest_cell=30):
                 )
 
             else:
-                ### !! ###
-                compiled_append( (tag, act[1], None) )
+                body, body_debug = compile_tagged_with_debug(act[2], tags, opcodes, nesting=True)
+                compiled_append( (tag, act[1], body) )
                 debug_info_append(
                     str_format(
-                        set_cell("{{:{}}}\t{{}}, {{}}"), get_dbg_msg('wdef'), act[1], None
+                        set_cell("{{:{}}}\t{{}}, {{{{\n\t{{}}\n}}}}"), get_dbg_msg('wdef'), act[1], body_debug
                     )
                 )
 
-        return g_tuple(compiled), n_join(debug_info)
+        return g_tuple(compiled), str_join("\n\t" if nesting else "\n", debug_info)
 
     return compile_tagged_with_debug if with_debug else compile_tagged

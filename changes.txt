@@ -1,2 +1,11 @@
 0.4.0
 >	The system rebuild. Just demo.
+
+
+0.4.1
+>	Hotfix: slots in frt_core.stack.Stack class are uncommented.
+>	Parser's, compiler's and executor's interfaces changes: 'with_debug' parameter is now false by default.
+>	Logic (including debug) for words definition.
+>	Stub logic for words execution.
+>	Hotfix: stub logic for manual cycle counter manipulation.
+>	Debug variation of 'execute' (test version).

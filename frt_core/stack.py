@@ -28,7 +28,7 @@ class Stack:
     #       limit:      int
     #       name:       str
 
-    #__slots__ = ('__drive', '__nfree', 'limit', 'name', '__str__')
+    __slots__ = ('__drive', '__nfree', 'limit', 'name', '__str__')
 
     # Ref: (str, int, str) -> none
     def __init__(self, type_tag, max_depth, name):
