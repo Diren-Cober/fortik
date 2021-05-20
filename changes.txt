@@ -14,3 +14,9 @@
 0.4.2
 >	Improved debug output (mostly execution and mostly words).
 >	Improved words logic.
+
+
+0.4.3
+>	Hotfix: additional check if an executed word is derived or builtin (useful in debug mode).
+>	Simple REPL.
+>	The first part of words' rework.

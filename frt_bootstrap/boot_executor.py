@@ -23,6 +23,8 @@ def get_executor(state, with_debug=False, get_dbg_msg=None, wides_cell=30):
     st_words__getitem__ = state.words.__getitem__
     st_words__setitem__ = state.words.__setitem__
 
+    is_derived_word = Derived_word.__instancecheck__
+
     # Compiled = iterable<tuple<object, ...>>
     # Opcodes = frt_bootstrap.boot_optags.get_optags.Opcodes
     # Ref:
@@ -42,10 +44,11 @@ def get_executor(state, with_debug=False, get_dbg_msg=None, wides_cell=30):
 
             elif tag is opcodes.call:
                 callable_word = others[0]
-                if callable_word:
+                if callable_word and not is_derived_word(callable_word):
                     callable_word()
                 else:
-                    execute(st_words__getitem__(others[1]), opcodes)
+                    st_words__getitem__(others[1])()
+                    #execute(st_words__getitem__(others[1]).w_code, opcodes)
                 i += 1
 
             elif tag is opcodes.move:
@@ -112,13 +115,14 @@ def get_executor(state, with_debug=False, get_dbg_msg=None, wides_cell=30):
             elif tag is opcodes.call:
                 callable_word, name = others
                 print(fill_debug_message(i, get_dbg_msg('call'), str_format("'{}'", name)))
-                if callable_word:
+                if callable_word and not is_derived_word(callable_word):
                     print(get_dbg_msg('output'), end='')
                     callable_word()
                     print('.\n')
                 else:
                     print(fill_additional_message(get_dbg_msg('>word').format(name)))
-                    execute_with_debug(st_words__getitem__(name), opcodes)
+                    st_words__getitem__(name)()
+                    #execute_with_debug(st_words__getitem__(name).w_code, opcodes)
                     print(fill_additional_message(get_dbg_msg('word>').format(name)))
                 i += 1
 

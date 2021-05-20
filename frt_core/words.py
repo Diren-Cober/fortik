@@ -32,21 +32,15 @@ class Derived_word:
 
         st_ret_stack_push = state.ret_stack.push
         st_ret_stack_pop = state.ret_stack.pop
-        st_code_stack_push = state.code_stack.append
-        st_code_stack_pop = state.code_stack.pop
-        st_current_program = state.current_program
         st_instruction_index = state.instruction_index
 
         # Ref: () -> none
         def _call():
             st_ret_stack_push(st_instruction_index + 1)
-            st_code_stack_push(st_current_program)
             state.instruction_index = 0
-            state.current_program = code
 
             execute(code, opcodes)
 
             state.instruction_index = st_ret_stack_pop()
-            state.current_program = st_code_stack_pop()
 
         self.__call__ = _call

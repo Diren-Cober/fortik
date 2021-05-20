@@ -99,13 +99,16 @@ else:
     compile_tagged = get_compiler(t, o, with_debug=True, get_dbg_msg=get_debugs, widest_cell=wc)
     execute = get_executor(vm.state, with_debug=True, get_dbg_msg=get_debugs, wides_cell=wc)
 
-    tokens = input("> ").split()
-    parsed = parse(tokens, 0, len(tokens), t, vm.state.words)
-    print("\t-- Parsed --\n{}\n\t-- ------ --".format(parsed[2]))
-    print("\t     ***")
-    compiled = compile_tagged(parsed[1], t, o)
-    print("\t-- Compiled --\n{}\n\t-- -------- --".format(compiled[1]))
-    print("\t     ***")
-    print("\t-- Executed --")
-    execute(compiled[0], o)
-    print("\t-- -------- --")
+    while True:
+        tokens = input("> ").split()
+        if 'завершить' in tokens:
+            break
+        parsed = parse(tokens, 0, len(tokens), t, vm.state.words)
+        print("\t-- Parsed --\n{}\n\t-- ------ --".format(parsed[2]))
+        print("\t     ***")
+        compiled = compile_tagged(parsed[1], t, o)
+        print("\t-- Compiled --\n{}\n\t-- -------- --".format(compiled[1]))
+        print("\t     ***")
+        print("\t-- Executed --")
+        execute(compiled[0], o)
+        print("\t-- -------- --")
