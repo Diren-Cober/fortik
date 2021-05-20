@@ -255,7 +255,7 @@ def get_compiler(_tags, _opcodes, with_debug=False, get_dbg_msg=None, widest_cel
                 compiled_append( (tag, act[1], body) )
                 debug_info_append(
                     str_format(
-                        set_cell("{{:{}}}\t{{}}, {{{{\n\t{{}}\n}}}}"), get_dbg_msg('wdef'), act[1], body_debug
+                        set_cell("{{:{}}}\t'{{}}', {{{{\n\t{{}}\n}}}}"), get_dbg_msg('wdef'), act[1], body_debug
                     )
                 )
 

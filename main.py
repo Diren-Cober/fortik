@@ -106,6 +106,6 @@ else:
     compiled = compile_tagged(parsed[1], t, o)
     print("\t-- Compiled --\n{}\n\t-- -------- --".format(compiled[1]))
     print("\t     ***")
-    print("\t-- Executed --\n")
+    print("\t-- Executed --")
     execute(compiled[0], o)
     print("\t-- -------- --")

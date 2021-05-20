@@ -9,3 +9,8 @@
 >	Stub logic for words execution.
 >	Hotfix: stub logic for manual cycle counter manipulation.
 >	Debug variation of 'execute' (test version).
+
+
+0.4.2
+>	Improved debug output (mostly execution and mostly words).
+>	Improved words logic.

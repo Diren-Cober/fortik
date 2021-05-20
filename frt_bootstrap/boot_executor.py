@@ -9,6 +9,7 @@
 def get_executor(state, with_debug=False, get_dbg_msg=None, wides_cell=30):
 
     from frt_core.cf_stack import Stack_underflow
+    from frt_core.words import Derived_word
 
     g_len = len
 
@@ -42,7 +43,7 @@ def get_executor(state, with_debug=False, get_dbg_msg=None, wides_cell=30):
             elif tag is opcodes.call:
                 callable_word = others[0]
                 if callable_word:
-                    callable_word(state)
+                    callable_word()
                 else:
                     execute(st_words__getitem__(others[1]), opcodes)
                 i += 1
@@ -80,12 +81,15 @@ def get_executor(state, with_debug=False, get_dbg_msg=None, wides_cell=30):
                     raise RuntimeError("Unable to modify counter without any cycle.")
 
             else:
-                st_words__setitem__(*others)
+                name, body = others
+                st_words__setitem__(name, Derived_word(body, state, execute, opcodes))
                 i += 1
 
 
-    fill_debug_message = "addr={{:5}}\top={{:{}}}\t{{}}".format(wides_cell).format
-    fill_additional_message = "addr={{:5}}\tinfo:\t{{}}".format(wides_cell).format
+    str_format = str.format
+
+    fill_debug_message = str_format("addr={{:05}}\top={{:{}}}\t{{}}", wides_cell).format
+    fill_additional_message = str_format("-------------\n\tinfo: {{}}\n-------------", wides_cell).format
 
     # Compiled = iterable<tuple<object, ...>>
     # Opcodes = frt_bootstrap.boot_optags.get_optags.Opcodes
@@ -107,13 +111,15 @@ def get_executor(state, with_debug=False, get_dbg_msg=None, wides_cell=30):
 
             elif tag is opcodes.call:
                 callable_word, name = others
-                print(fill_debug_message(i, get_dbg_msg('call'), name))
-                print(get_dbg_msg('output'), end='')
+                print(fill_debug_message(i, get_dbg_msg('call'), str_format("'{}'", name)))
                 if callable_word:
-                    callable_word(state)
+                    print(get_dbg_msg('output'), end='')
+                    callable_word()
+                    print('.\n')
                 else:
-                    execute(st_words__getitem__(name), opcodes)
-                print('.\n')
+                    print(fill_additional_message(get_dbg_msg('>word').format(name)))
+                    execute_with_debug(st_words__getitem__(name), opcodes)
+                    print(fill_additional_message(get_dbg_msg('word>').format(name)))
                 i += 1
 
             elif tag is opcodes.move:
@@ -128,17 +134,17 @@ def get_executor(state, with_debug=False, get_dbg_msg=None, wides_cell=30):
 
             elif tag is opcodes.setup_cycle:
                 st_cfl_push(*others)
-                print(fill_debug_message(i, get_dbg_msg('cycle'), others))
+                print(fill_debug_message(i, get_dbg_msg('cycle'), str_format("{}, {}, {}", *others)))
                 i += 1
 
             elif tag is opcodes.check_cycle:
                 print(fill_debug_message(i, get_dbg_msg('cycle?'), *others))
                 if st_cfl_compare():
-                    print(fill_additional_message(i, get_dbg_msg('cycle>')))
+                    print(fill_additional_message(get_dbg_msg('cycle>')))
                     i += 1
                 else:
                     st_cfl_drop()
-                    print(fill_additional_message(i, get_dbg_msg('cycle!')))
+                    print(fill_additional_message(get_dbg_msg('cycle!')))
                     i += others[0]
 
             elif tag is opcodes.clock:
@@ -166,8 +172,8 @@ def get_executor(state, with_debug=False, get_dbg_msg=None, wides_cell=30):
 
             else:
                 name, body = others
-                st_words__setitem__(name, body)
-                print(fill_debug_message(i, get_dbg_msg('wdef'), name))
+                st_words__setitem__(name, Derived_word(body, state, execute_with_debug, opcodes))
+                print(fill_debug_message(i, get_dbg_msg('wdef'), str_format("'{}'", name)))
                 i += 1
 
 

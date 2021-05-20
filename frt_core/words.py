@@ -5,54 +5,48 @@
 
 class Builtin_word:
 
-    # Ref: (frt_core.machine.VM) -> none
+    # Ref: () -> none
     __slots__ = '__call__'
 
     # Ref: (() -> none) -> none
     def __init__(self, impl):
-        self.__call__ = lambda ignored: impl()
-
-
-
-class Builtin_control_word:
-
-    # Ref: (frt_core.machine.VM) -> none
-    __slots__ = '__call__'
-
-    # Ref: (() -> none) -> none
-    def __init__(self, impl):
-        self.__call__ = impl
+        self.__call__ = impl.__call__
 
 
 
 class Derived_word:
 
     # Ref:
-    #   w_code:         iterable<(frt_core.machine.VM) -> none>     // tuple, in fact.
-    #   __call__:       (frt_core.machine.VM) -> none
+    #   w_code:         iterable<tuple<object, ...>>
+    #   __call__:       () -> none
 
     __slots__ = ('w_code', '__call__')
 
-    # Ref: (iterable<() -> none>) -> none   // tuple, in fact.
-    def __init__(self, code, state):
+    # State = frt_core.state.State
+    # Compiled = iterable<tuple<object, ...>>
+    # Opcodes = frt_bootstrap.boot_optags.get_optags.Opcodes
+    # Ref: (iterable<tuple<object, ...>>, State, (Compiled, Opcodes) -> none) -> none
+    def __init__(self, code, state, execute, opcodes):
 
         self.w_code = code
 
-        state_ret_stack_push = state.ret_stack.push
-        state_ret_stack_pop = state.ret_stack.pop
-        state_code_stack_push = state.code_stack.append
-        state_code_stack_pop = state.code_stack.pop
+        st_ret_stack_push = state.ret_stack.push
+        st_ret_stack_pop = state.ret_stack.pop
+        st_code_stack_push = state.code_stack.append
+        st_code_stack_pop = state.code_stack.pop
+        st_current_program = state.current_program
+        st_instruction_index = state.instruction_index
 
-        # Ref: (frt_core.machine.VM) -> none
-        def _call(vm):
-            state_ret_stack_push(state.instruction_index + 1)
-            state_code_stack_push(state.current_program)
+        # Ref: () -> none
+        def _call():
+            st_ret_stack_push(st_instruction_index + 1)
+            st_code_stack_push(st_current_program)
             state.instruction_index = 0
-            state.current_program = self.w_code
+            state.current_program = code
 
-            vm.execute()
+            execute(code, opcodes)
 
-            state.instruction_index = state_ret_stack_pop()
-            state.current_program = state_code_stack_pop()
+            state.instruction_index = st_ret_stack_pop()
+            state.current_program = st_code_stack_pop()
 
         self.__call__ = _call

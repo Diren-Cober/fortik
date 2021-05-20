@@ -260,7 +260,7 @@ def get_parser(with_debug=False, get_dbg_msg=None):
                         parsed_append( (tags.define, name, status[1]) )
                         debug_info_append(
                             str_format(
-                                "({}, {}, {{{}{}{}}})",
+                                "({}, '{}', {{{}{}{}}})",
                                 get_dbg_msg('wdef'), name, pre_indent, status[2] , post_indent
                             )
                         )
@@ -387,7 +387,7 @@ def get_parser(with_debug=False, get_dbg_msg=None):
                         # unknown word
                         return False, ""
 
-                    debug_info_append(str_format("({}, {})", get_dbg_msg('call'), token))
+                    debug_info_append(str_format("({}, '{}')", get_dbg_msg('call'), token))
                     i += 1
 
         return True, g_tuple(parsed), str_join(post_indent, debug_info)

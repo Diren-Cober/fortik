@@ -124,9 +124,11 @@ dbgs = {
     'cycle'     : 'setup-cycle',
     'cycle?'    : 'check-counter',
     'clck'      : 'next-iteration',
-    'cycle>'    : 'enter-iteration',
-    'cycle!'    : 'exit-iteration',
-    'output'    : 'Output: '
+    'cycle>'    : 'Entering iteration',
+    'cycle!'    : 'Exiting iteration',
+    'output'    : 'Output: ',
+    '>word'     : "Entering derived word '{}'",
+    'word>'     : "Exiting derived word '{}'"
 }
 
 # Strings used in stringification of internal operations' tags.

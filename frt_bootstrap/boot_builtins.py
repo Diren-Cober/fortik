@@ -152,10 +152,6 @@ def generate_vm_dependent_builtins(vm):
     st_cdr_decode = st.coder.decode
     st_cdr_encode = st.coder.encode
 
-
-
-    from frt_core.words import Builtin_control_word
-
     return {
         'вывести_число'     : Builtin_word(lambda: vm_write(str(st_ns_pop()))),
         'вывести_символ'    : Builtin_word(lambda: vm_write(st_cdr_decode(st_ns_pop()))),
@@ -167,8 +163,6 @@ def generate_vm_dependent_builtins(vm):
         'считать_символ'    : Builtin_word(lambda: st_ns_push(st_cdr_encode(vm_read(1)))),
         'считать_строку'    : None,     # ...string from ostream, length described by number on the top of the num stack.
         'считать_текст'     : None,     # ...all readable input.
-
-        ':'             : Builtin_control_word(lambda: None)
     }
 
     # UNDER COMMENT: the words used in parsing, not in execution.
