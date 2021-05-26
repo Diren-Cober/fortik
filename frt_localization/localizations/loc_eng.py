@@ -124,8 +124,8 @@ dbgs = {
     'cycle'     : 'setup-cycle',
     'cycle?'    : 'check-counter',
     'clck'      : 'next-iteration',
-    'cycle>'    : 'Entering iteration',
-    'cycle!'    : 'Exiting iteration',
+    '>cycle'    : 'Entering iteration',
+    'cycle>'    : 'Exiting iteration',
     'output'    : 'Output: ',
     '>word'     : "Entering derived word '{}'",
     'word>'     : "Exiting derived word '{}'"

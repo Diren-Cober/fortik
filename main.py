@@ -26,54 +26,65 @@ del sys, boot, boot_interface
 
 if retcode:
     from frt_bootstrap.boot_low import reduce_commas
-    write(
-        {
-            1: """
+
+    if retcode == 1:
+        write("""
 Ошибка: не удалось проверить целостность системы: отсутствует папка 'frt_bootstrap'.
 Error: system's integrity check has been failed due to loss of the 'frt_bootstrap' directory.
-""",
-            2: """
+""")
+    elif retcode == 2:
+        write("""
 Ошибка: не удалось проверить целостность системы: отсутствует файл 'frt_bootstrap/boot_low.py'.
 Error: system's integrity check has been failed due to loss of the 'frt_bootstrap/boot_low.py' file.
-""",
-            3: """
+""")
+    elif retcode == 3:
+        write("""
 Ошибка: не удалось проверить целостность системы: файл 'frt_bootstrap/boot_low.py' повреждён.
 Error: system's integrity check has been failed due to corruption of the 'frt_bootstrap/boot_low.py' file.
-""",
-            4: """
+""")
+    elif retcode == 4:
+        write("""
 Ошибка: целостность системы нарушена.
 Error: the system is corrupted.
 Недостаёт: {0}.
 Missing: {0}.
-""".format(reduce_commas(others[0])),
-            5: """
+""".format(reduce_commas(others[0]))
+        )
+    elif retcode == 5:
+        write("""
 Ошибка: недостаёт следующих файлов локализации: {0}.
 Error: the next localization files are missing: {0}.
-""".format(reduce_commas(others[0])),
-            6: """
+""".format(reduce_commas(others[0]))
+        )
+    elif retcode == 6:
+        write("""
 Ошибка: недостаёт следующих кодовых страниц: {0}.
 Error: the next code pages are missing: {0}.
-""".format(reduce_commas(others[0])),
-            7: """
+""".format(reduce_commas(others[0]))
+        )
+    elif retcode == 7:
+        write("""
 Ошибка в аргументах командной строки.
 Command line arguments error.
 Ключ '{0}' должен сопровождаться одним из следующих значений: {1}.
 A '{0}' key must be followed by one of these values: {1}.
-""".format(others[0], reduce_commas(others[1])),
-            8: """
+""".format(others[0], reduce_commas(others[1]))
+        )
+    elif retcode == 8:
+        write("""
 Ошибка: запрашиваемый модуль локализации ('{0}') не найден.
 Error: the requested localization module ('{0}') have not been found.
-""".format(others[0]),
-            9: """
+""".format(others[0])
+        )
+    elif retcode == 9:
+        write("""
 Ошибка: запрашиваемый модуль локализации ('{0}') повреждён.
 Error: the requested localization module ('{0}') has been corrupted.
-""".format(others[0]),
-            10: others[0],
-            11: '',  # coder not found
-            12: '',  # coder corrupted
+""".format(others[0])
+        )
+    elif retcode in (10, 11, 12):
+        write(others[0])
 
-        }.__getitem__(retcode)
-    )
     flush()
     exit(retcode)
 

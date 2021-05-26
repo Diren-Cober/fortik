@@ -23,8 +23,6 @@ def get_executor(state, with_debug=False, get_dbg_msg=None, wides_cell=30):
     st_words__getitem__ = state.words.__getitem__
     st_words__setitem__ = state.words.__setitem__
 
-    is_derived_word = Derived_word.__instancecheck__
-
     # Compiled = iterable<tuple<object, ...>>
     # Opcodes = frt_bootstrap.boot_optags.get_optags.Opcodes
     # Ref:
@@ -39,16 +37,15 @@ def get_executor(state, with_debug=False, get_dbg_msg=None, wides_cell=30):
             tag, *others = compiled_get(i)
 
             if tag is opcodes.push:
-                st_ns_push(*others)
+                st_ns_push(others[0])
                 i += 1
 
             elif tag is opcodes.call:
                 callable_word = others[0]
-                if callable_word and not is_derived_word(callable_word):
+                if callable_word:
                     callable_word()
                 else:
                     st_words__getitem__(others[1])()
-                    #execute(st_words__getitem__(others[1]).w_code, opcodes)
                 i += 1
 
             elif tag is opcodes.move:
@@ -85,14 +82,15 @@ def get_executor(state, with_debug=False, get_dbg_msg=None, wides_cell=30):
 
             else:
                 name, body = others
-                st_words__setitem__(name, Derived_word(body, state, execute, opcodes))
+                st_words__setitem__(name, Derived_word(body, execute, opcodes))
                 i += 1
 
 
     str_format = str.format
+    is_derived_word = Derived_word.__instancecheck__
 
     fill_debug_message = str_format("addr={{:05}}\top={{:{}}}\t{{}}", wides_cell).format
-    fill_additional_message = str_format("-------------\n\tinfo: {{}}\n-------------", wides_cell).format
+    fill_additional_message = "-------------\n\tinfo: {}\n-------------".format
 
     # Compiled = iterable<tuple<object, ...>>
     # Opcodes = frt_bootstrap.boot_optags.get_optags.Opcodes
@@ -108,22 +106,35 @@ def get_executor(state, with_debug=False, get_dbg_msg=None, wides_cell=30):
             tag, *others = compiled_get(i)
 
             if tag is opcodes.push:
-                st_ns_push(*others)
-                print(fill_debug_message(i, get_dbg_msg('push'), *others))
+                num = others[0]
+                st_ns_push(num)
+                print(fill_debug_message(i, get_dbg_msg('push'), num))
                 i += 1
 
             elif tag is opcodes.call:
                 callable_word, name = others
                 print(fill_debug_message(i, get_dbg_msg('call'), str_format("'{}'", name)))
-                if callable_word and not is_derived_word(callable_word):
-                    print(get_dbg_msg('output'), end='')
-                    callable_word()
-                    print('.\n')
+                if callable_word:
+                    if is_derived_word(callable_word):
+                        print(
+                            fill_additional_message(str_format(get_dbg_msg('>word'), name))
+                        )
+                        callable_word()
+                        print(
+                            fill_additional_message(str_format(get_dbg_msg('word>'), name))
+                        )
+                    else:
+                        print(get_dbg_msg('output'), end='')
+                        callable_word()
+                        print('.\n')
                 else:
-                    print(fill_additional_message(get_dbg_msg('>word').format(name)))
+                    print(
+                        fill_additional_message(str_format(get_dbg_msg('>word'), name))
+                    )
                     st_words__getitem__(name)()
-                    #execute_with_debug(st_words__getitem__(name).w_code, opcodes)
-                    print(fill_additional_message(get_dbg_msg('word>').format(name)))
+                    print(
+                       fill_additional_message(str_format(get_dbg_msg('word>'), name))
+                    )
                 i += 1
 
             elif tag is opcodes.move:
@@ -144,11 +155,11 @@ def get_executor(state, with_debug=False, get_dbg_msg=None, wides_cell=30):
             elif tag is opcodes.check_cycle:
                 print(fill_debug_message(i, get_dbg_msg('cycle?'), *others))
                 if st_cfl_compare():
-                    print(fill_additional_message(get_dbg_msg('cycle>')))
+                    print(fill_additional_message(get_dbg_msg('>cycle')))
                     i += 1
                 else:
                     st_cfl_drop()
-                    print(fill_additional_message(get_dbg_msg('cycle!')))
+                    print(fill_additional_message(get_dbg_msg('cycle>')))
                     i += others[0]
 
             elif tag is opcodes.clock:
@@ -176,7 +187,7 @@ def get_executor(state, with_debug=False, get_dbg_msg=None, wides_cell=30):
 
             else:
                 name, body = others
-                st_words__setitem__(name, Derived_word(body, state, execute_with_debug, opcodes))
+                st_words__setitem__(name, Derived_word(body, execute_with_debug, opcodes))
                 print(fill_debug_message(i, get_dbg_msg('wdef'), str_format("'{}'", name)))
                 i += 1
 

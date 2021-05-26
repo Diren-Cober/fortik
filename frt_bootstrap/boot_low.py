@@ -5,19 +5,8 @@
 
 # Ref: () -> (iterable<str>) -> str
 def get_commas_reducer():
-
     from functools import reduce
-    do_format = '{}, {}'.format
-
-    # Ref: (str, str) -> str
-    def reducer(left, right):
-        return do_format(left, right)
-
-    # Ref: (iterable<str>) -> str
-    def do_reduce(str_iterable):
-        return reduce(reducer, str_iterable)
-
-    return do_reduce
+    return lambda iterable: reduce('{}, {}'.format, iterable)
 
 reduce_commas = get_commas_reducer()
 del get_commas_reducer
@@ -32,64 +21,100 @@ del get_commas_reducer
 def check_if_any_system_files_are_missing(location):
 
     from os.path import sep, exists
-    from collections import deque
 
-    sep_join = sep.join
-    g_exists = exists
-
-    losses = deque([])
+    losses = []
     missing = False
 
     losses_append = losses.append
+    sep_join = sep.join
+    g_exists = exists
 
-    sep_join_arg = [sep_join( (location, 'frt_bootstrap') ), 'boot_cli.py']
-    if not g_exists(sep_join(sep_join_arg)):
-        missing = True
-        losses_append('frt_bootstrap/boot_cli.py')
-
-    sep_join_arg[1] = 'boot_builtins.py'
+    sep_join_arg = [sep_join( (location, 'frt_bootstrap') ), 'boot_builtins.py']
+    sep_join_arg_set = sep_join_arg.__setitem__
     if not g_exists(sep_join(sep_join_arg)):
         missing = True
         losses_append('frt_bootstrap/boot_builtins.py')
 
+    sep_join_arg_set(1, 'boot_cli.py')
+    if not g_exists(sep_join(sep_join_arg)):
+        missing = True
+        losses_append('frt_bootstrap/boot_cli.py')
+
+    sep_join_arg_set(1, 'boot_compiler.py')
+    if not g_exists(sep_join(sep_join_arg)):
+        missing = True
+        losses_append('frt_bootstrap/boot_compiler.py')
+
+    sep_join_arg_set(1, 'boot_executor.py')
+    if not g_exists(sep_join(sep_join_arg)):
+        missing = True
+        losses_append('frt_bootstrap/boot_executor.py')
+
+    sep_join_arg_set(1, 'boot_optags.py')
+    if not g_exists(sep_join(sep_join_arg)):
+        missing = True
+        losses_append('frt_bootstrap/boot_optags.py')
+
+    sep_join_arg_set(1, 'boot_parser.py')
+    if not g_exists(sep_join(sep_join_arg)):
+        missing = True
+        losses_append('frt_bootstrap/boot_parser.py')
+
+    sep_join_arg_set(1, 'boot_starter.py')
+    if not g_exists(sep_join(sep_join_arg)):
+        missing = True
+        losses_append('frt_bootstrap/boot_starter.py')
+
+
     frt_core = sep_join([location, 'frt_core'])
     if g_exists(frt_core):
 
-        sep_join_arg[0] = frt_core
-        sep_join_arg[1] = 'stack.py'
+        sep_join_arg_set(0, frt_core)
+        sep_join_arg_set(1, 'cf_stack.py')
+        if not g_exists(sep_join(sep_join_arg)):
+            missing = True
+            losses_append('frt_core/cf_stack.py')
+
+        sep_join_arg_set(1, 'debugging.py')
+        if not g_exists(sep_join(sep_join_arg)):
+            missing = True
+            losses_append('frt_core/debugging.py')
+
+        sep_join_arg_set(1, 'machine.py')
+        if not g_exists(sep_join(sep_join_arg)):
+            missing = True
+            losses_append('frt_core/machine.py')
+
+        sep_join_arg_set(1, 'stack.py')
         if not g_exists(sep_join(sep_join_arg)):
             missing = True
             losses_append('frt_core/stack.py')
 
-        sep_join_arg[1] = 'state.py'
+        sep_join_arg_set(1, 'state.py')
         if not g_exists(sep_join(sep_join_arg)):
             missing = True
             losses_append('frt_core/stata.py')
 
-        sep_join_arg[1] = 'words.py'
+        sep_join_arg_set(1, 'words.py')
         if not g_exists(sep_join(sep_join_arg)):
             missing = True
             losses_append('frt_core/words.py')
-
-        sep_join_arg[1] = 'machine.py'
-        if not g_exists(sep_join(sep_join_arg)):
-            missing = True
-            losses_append('frt_core/machine.py')
 
     else:
         missing = True
         losses_append('frt_core')
 
+
     frt_encoding = sep_join([location, 'frt_encoding'])
     if g_exists(frt_encoding):
 
-        sep_join_arg[0] = frt_encoding
-        sep_join_arg[1] = 'coder.py'
+        sep_join_arg_set(0, frt_encoding)
+        sep_join_arg_set(1, 'coder.py')
         if not g_exists(sep_join(sep_join_arg)):
             missing = True
             losses_append('frt_encoding/coder.py')
 
-        sep_join_arg[1] = 'code_pages'
+        sep_join_arg_set(1, 'code_pages')
         if not g_exists(sep_join(sep_join_arg)):
             missing = True
             losses_append('frt_encoding/code_pages')
@@ -98,16 +123,17 @@ def check_if_any_system_files_are_missing(location):
         missing = True
         losses_append('frt_encoding')
 
+
     frt_localization = sep_join([location, 'frt_localization'])
     if g_exists(frt_localization):
 
-        sep_join_arg[0] = frt_localization
-        sep_join_arg[1] = 'locale.py'
+        sep_join_arg_set(0, frt_localization)
+        sep_join_arg_set(1, 'locale.py')
         if not g_exists(sep_join(sep_join_arg)):
             missing = True
             losses_append('frt_localization/locale.py')
 
-        sep_join_arg[1] = 'localizations'
+        sep_join_arg_set(1, 'localizations')
         if not g_exists(sep_join(sep_join_arg)):
             missing = True
             losses_append('frt_localization/localizations')
@@ -116,11 +142,10 @@ def check_if_any_system_files_are_missing(location):
         missing = True
         losses_append('frt_localization')
 
+
     return (
         True, tuple(losses)
-    ) if missing else (
-        False, None
-    )
+    ) if missing else (False,)
 
 
 

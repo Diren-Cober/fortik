@@ -21,7 +21,6 @@ class State:
     __slots__ = (
         'num_stack', 'ret_stack', 'cfl_stack', 'words', 'coder', 'debugger',
         'do_disable_gc', 'do_compile_deep', 'do_block_keyboard_interrupt',
-        'current_program', 'code_stack', 'instruction_index',
         'repr_words', '__str__'
     )
 
@@ -41,7 +40,7 @@ class State:
         from frt_bootstrap.boot_builtins import generate_builtins
 
         self.num_stack = num_stack
-        self.ret_stack = num_stack
+        self.ret_stack = ret_stack
         self.cfl_stack = cfl_stack
 
         self_words = generate_builtins(self)
@@ -52,10 +51,6 @@ class State:
         self.do_disable_gc = do_disable_gc
         self.do_compile_deep = do_compile_deep
         self.do_block_keyboard_interrupt = do_block_keyboard_interrupt
-
-        self.current_program = (lambda ignored: None,)
-        self.code_stack = deque()
-        self.instruction_index = 0
 
         g_map = map
         g_max = max
@@ -69,7 +64,9 @@ class State:
         deque_append = deque.append
         self_words_keys = self_words.keys
         self_num_stack_name = num_stack.name
-        self_ret_stack_name = num_stack.name
+        self_ret_stack_name = ret_stack.name
+        self_num_stack_limit = num_stack.limit
+        self_ret_stack_limit = ret_stack.limit
 
         # Ref: () -> str
         def _repr_words():
@@ -104,12 +101,12 @@ class State:
                     "\n\n\tСтеки",
                     str_format(
                         "{}:\t\t{}\n\tПредел: {}",
-                        self_num_stack_name, num_stack, num_stack.limit
+                        self_num_stack_name, num_stack, self_num_stack_limit
                     ),
                     " ---------------------------------------",
                     str_format(
                         "{}:\t\t{}\n\tПредел: {}",
-                        self_ret_stack_name, ret_stack, ret_stack.limit
+                        self_ret_stack_name, ret_stack, self_ret_stack_limit
                     ),
                     " ---------------------------------------",
                     "Стек плавающей арифметики:\t<в разработке>\n\n\tТекстовый буфер\n<в разработке>",

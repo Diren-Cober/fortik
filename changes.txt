@@ -20,3 +20,15 @@
 >	Hotfix: additional check if an executed word is derived or builtin (useful in debug mode).
 >	Simple REPL.
 >	The first part of words' rework.
+
+
+0.4.4 (a big patch)
+>	A rudiment is removed: 'frt_core.state.State' object does not hold current program and instruction index.
+>	An optimization in frt_bootstrap.boot_low.get_commas_reducer: redundant function calls replaced with one lambda.
+>	A bugfix in main: erorr messages are generated only on demand, process does not fall on formatting stage.
+>	A bugfix in frt_bootstrap.boot_low.check_if_any_system_files_are_missing: recently added files are now checked.
+>	An optimization in frt_bootstrap.boot_low.check_if_any_system_files_are_missing: sep_join_arg's __setitem__ is now pre-cached.
+>	A bugfix in frt_bootstrap.boot_executor.get_executor.execute_with_debug: already defined words a provided with the same
+..	debug message, as recently defined ones; small changes in frt_bootstrap.boot_executor.get_executor.
+>	Small changes in frt_core.state.State (mostly about bugs).
+>	The second part of words' rework.
