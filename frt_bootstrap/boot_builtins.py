@@ -31,7 +31,7 @@ def generate_builtins(st):
 
     # Ref: ((int, int) -> int, frt_core.state.State) -> () -> none
     def make_r_binop(func, state):
-        rs = state.ret_stack
+        rs = state.aux_stack
         rs_pop = rs.pop
         rs_push = rs.push
 
@@ -43,7 +43,7 @@ def generate_builtins(st):
         return word
 
     st_ns = st.num_stack
-    st_rs = st.ret_stack
+    st_rs = st.aux_stack
 
     g_int = int
     g_bool = bool

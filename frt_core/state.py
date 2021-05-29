@@ -7,19 +7,17 @@ class State:
 
     # Ref:
     #   num_stack:          Stack
-    #   ret_stack:          Stack
+    #   aux_stack:          Stack
     #   cfl_stack:          CF_stack
     #   words:              dict<str, frt_core.words.Word>
     #   coder:              frt_encoding.coder.Coder
     #   debugger:           optional<frt_core.debugging.Debugger>
     #   <flags>:            bool; bool; bool
-    #   current_program:    iterable<(frt_core.machine.VM) -> none>     // in fact, a giant tuple
-    #   output:             (str) -> none
     #   repr_words:         () -> str
     #   __str__:            () -> str
 
     __slots__ = (
-        'num_stack', 'ret_stack', 'cfl_stack', 'words', 'coder', 'debugger',
+        'num_stack', 'aux_stack', 'cfl_stack', 'words', 'coder', 'debugger',
         'do_disable_gc', 'do_compile_deep', 'do_block_keyboard_interrupt',
         'repr_words', '__str__'
     )
@@ -33,14 +31,14 @@ class State:
     # ) -> none
     def __init__(
             self,
-            num_stack, ret_stack, cfl_stack, coder, debugger,
+            num_stack, aux_stack, cfl_stack, coder, debugger,
             do_disable_gc, do_compile_deep, do_block_keyboard_interrupt
     ):
         from collections import deque
         from frt_bootstrap.boot_builtins import generate_builtins
 
         self.num_stack = num_stack
-        self.ret_stack = ret_stack
+        self.aux_stack = aux_stack
         self.cfl_stack = cfl_stack
 
         self_words = generate_builtins(self)
@@ -64,9 +62,9 @@ class State:
         deque_append = deque.append
         self_words_keys = self_words.keys
         self_num_stack_name = num_stack.name
-        self_ret_stack_name = ret_stack.name
+        self_ret_stack_name = aux_stack.name
         self_num_stack_limit = num_stack.limit
-        self_ret_stack_limit = ret_stack.limit
+        self_ret_stack_limit = aux_stack.limit
 
         # Ref: () -> str
         def _repr_words():
@@ -106,7 +104,7 @@ class State:
                     " ---------------------------------------",
                     str_format(
                         "{}:\t\t{}\n\tПредел: {}",
-                        self_ret_stack_name, ret_stack, self_ret_stack_limit
+                        self_ret_stack_name, aux_stack, self_ret_stack_limit
                     ),
                     " ---------------------------------------",
                     "Стек плавающей арифметики:\t<в разработке>\n\n\tТекстовый буфер\n<в разработке>",

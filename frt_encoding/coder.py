@@ -43,20 +43,21 @@ class Coder:
 # But the optimizations are here: for future purposes.
 #
 # Ref: (str) -> tuple<bool, optional<str>>
-def check_if_any_coders_are_missing(location):
+def check_if_any_code_pages_are_missing(location):
 
     from os.path import sep, exists
-    from collections import deque
 
+    g_exists = exists
     sep_join = sep.join
     sep_join_arg = [sep_join( (location, 'frt_encoding', 'code_pages') ), None]
-    losses = deque([])
+    sep_join_arg_set = sep_join_arg.__setitem__
+    losses = []
     losses_append = losses.append
     missing = False
 
     for cp_name in Coder.cp_names:
-        sep_join_arg[1] = f'cp_{cp_name}.py'
-        if not exists(sep_join(sep_join_arg)):
+        sep_join_arg_set(1, f'cp_{cp_name}.py')
+        if not g_exists(sep_join(sep_join_arg)):
             missing = True
             losses_append(f'frt_encoding/code_pages/cp_{cp_name}.py')
 
@@ -78,11 +79,11 @@ def load_coder(coder_name):
         from importlib import import_module
 
         try:
-            coder_m = import_module("frt_encoding.code_pages.cp_{}".format(coder_name))
+            coder_module = import_module("frt_encoding.code_pages.cp_{}".format(coder_name))
         except ModuleNotFoundError:
             return False, True
 
-        if hasattr(coder_m, 'cp'):
-            return True, Coder(coder_m.cp)
+        if hasattr(coder_module, 'cp'):
+            return True, Coder(coder_module.cp)
         else:
             return False, False

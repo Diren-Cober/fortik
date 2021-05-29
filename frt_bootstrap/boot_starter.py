@@ -29,14 +29,14 @@ def boot(location,  boot_interface, read, write):
                 # System files are missing...
                 return 4, status[1]
 
-            from frt_localization.locale import check_if_any_locales_are_missing
-            status = check_if_any_locales_are_missing(location)
+            from frt_localization.locale import check_if_any_localizations_are_missing
+            status = check_if_any_localizations_are_missing(location)
             if status[0]:
                 # Localization files are missing...
                 return 5, status[1]
 
-            from frt_encoding.coder import check_if_any_coders_are_missing
-            status = check_if_any_coders_are_missing(location)
+            from frt_encoding.coder import check_if_any_code_pages_are_missing
+            status = check_if_any_code_pages_are_missing(location)
             if status[0]:
                 # Code pages are missing...
                 return 6, status[1]

@@ -19,7 +19,7 @@ class VM:
     #   reset_state:    () -> none
 
     __slots__ = (
-        'state', 'builtins', 'input', 'inp_index', 'code', 'localization',
+        'state', 'builtins', 'localization',
         'parse', 'execute', 'read', 'write', 'reset_stacks', 'reset_state'
     )
 
@@ -32,7 +32,7 @@ class VM:
 
         from frt_bootstrap.boot_builtins import generate_builtins, generate_vm_dependent_builtins
         builtins = generate_builtins(state)
-        self.__init__(state, state.num_stack, state.ret_stack, builtins, read, write)
+        self.__init__(state, state.num_stack, state.aux_stack, builtins, read, write)
         builtins.update(generate_vm_dependent_builtins(self))
 
         return self
@@ -54,12 +54,9 @@ class VM:
         ret_stack = Stack(rs_cell_type, rs_size, 'Стек возвратов')
         cfl_stack = ControlFlow_stack('Стек управления')
 
-        from frt_core.debugging import Debugger
-        debugger = Debugger(debug_code, write)
-
         from frt_core.state import State
         state = State(
-            num_stack, ret_stack, cfl_stack, coder, debugger,
+            num_stack, ret_stack, cfl_stack, coder, None,   ###
             do_disable_gc, do_compile_deep, do_block_keyboard_interrupt
         )
         self.state = state
@@ -78,12 +75,6 @@ class VM:
     # Ref: (State, Stack, Stack, Builtins, (int) -> str, (str) -> none) -> none
     def __init__(self, state, num_stack, ret_stack, builtins, read, write):
 
-        from collections import deque
-
-        _input = list()
-        self.input = _input
-        self.code = deque()
-
         ns_clear = num_stack.clear
         rs_clear = ret_stack.clear
         st_words_clear = state.words.clear
@@ -99,8 +90,6 @@ class VM:
             st_words_clear()
             st_words_update(builtins)
 
-        #self.parse = _parse
-        #self.execute = _execute
         self.read = read
         self.write = write
         self.reset_stacks = _reset_stacks

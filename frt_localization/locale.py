@@ -27,20 +27,21 @@ class Locale:
 # .. because 'localizations' folder may contain lots of localization modules.
 #
 # Ref: (str) -> tuple<bool, optional<str>>
-def check_if_any_locales_are_missing(location):
+def check_if_any_localizations_are_missing(location):
 
     from os.path import sep, exists
-    from collections import deque
 
+    g_exists = exists
     sep_join = sep.join
     sep_join_arg = [sep_join( (location, 'frt_localization', 'localizations') ), None]
-    losses = deque([])
+    sep_join_arg_set = sep_join_arg.__setitem__
+    losses = []
     losses_append = losses.append
     missing = False
 
     for loc_name in Locale.loc_names:
-        sep_join_arg[1] = f'loc_{loc_name}.py'
-        if not exists(sep_join(sep_join_arg)):
+        sep_join_arg_set(1, f'loc_{loc_name}.py')
+        if not g_exists(sep_join(sep_join_arg)):
             missing = True
             losses_append(f'frt_localization/localizations/loc_{loc_name}.py')
 
@@ -58,16 +59,17 @@ def load_localization(loc_name):
     from importlib import import_module
 
     try:
-        loc_m = import_module("frt_localization.localizations.loc_{}".format(loc_name))
+        loc_module = import_module("frt_localization.localizations.loc_{}".format(loc_name))
     except ModuleNotFoundError:
         return False, True
     g_hattr = hasattr
     
     # If all needed parts of localization are there...
     if (
-            g_hattr(loc_m, 'errs') and g_hattr(loc_m, 'refs') and g_hattr(loc_m, 'dbgs') and
-            g_hattr(loc_m, 'tags') and g_hattr(loc_m, 'words')
+            g_hattr(loc_module, 'errs') and g_hattr(loc_module, 'refs') and
+            g_hattr(loc_module, 'dbgs') and g_hattr(loc_module, 'tags') and
+            g_hattr(loc_module, 'words')
     ):
-        return True, Locale(loc_m)
+        return True, Locale(loc_module)
     else:
         return False, False

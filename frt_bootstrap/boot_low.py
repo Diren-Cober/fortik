@@ -75,15 +75,15 @@ def check_if_any_system_files_are_missing(location):
             missing = True
             losses_append('frt_core/cf_stack.py')
 
-        sep_join_arg_set(1, 'debugging.py')
-        if not g_exists(sep_join(sep_join_arg)):
-            missing = True
-            losses_append('frt_core/debugging.py')
-
         sep_join_arg_set(1, 'machine.py')
         if not g_exists(sep_join(sep_join_arg)):
             missing = True
             losses_append('frt_core/machine.py')
+
+        sep_join_arg_set(1, 'settings.py')
+        if not g_exists(sep_join(sep_join_arg)):
+            missing = True
+            losses_append('frt_core/settings.py')
 
         sep_join_arg_set(1, 'stack.py')
         if not g_exists(sep_join(sep_join_arg)):
